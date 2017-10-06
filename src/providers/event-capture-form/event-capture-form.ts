@@ -3,6 +3,7 @@ import { Http } from '@angular/http';
 import 'rxjs/add/operator/map';
 import {ProgramsProvider} from "../programs/programs";
 import {DataElementsProvider} from "../data-elements/data-elements";
+import {reject} from "q";
 
 /*
   Generated class for the EventCaptureFormProvider provider.
@@ -325,7 +326,10 @@ export class EventCaptureFormProvider {
 
 
   getProgramStages(programId, currentUser){
+    let stageSectionIds = [];
     let dataElementIds = [];
+    let newStageData = [];
+    let stageSectionMapper = {};
     let dataElementMapper = {};
      return new Promise((resolve, reject) =>  {
       this.programsProvider.getProgramsStages(programId,currentUser).then((programsStages:any)=>{
@@ -337,20 +341,51 @@ export class EventCaptureFormProvider {
           programsStage.programStageDataElements.forEach((programStageDataElement)=>{
             dataElementIds.push(programStageDataElement.dataElement.id);
           });
+
+          programsStage.programStageSections.forEach((stageSectionId:any)=>{
+            //alert("Stag "+JSON.stringify(stageSectionId.id))
+            stageSectionIds.push(stageSectionId.id);
+          });
+
         });
         this.dataElementProvider.getDataElementsByIdsForEvents(dataElementIds,currentUser).then((dataElements : any)=>{
-          dataElements.forEach((dataElement : any)=>{
-            dataElementMapper[dataElement.id] = dataElement;
-          });
-          programsStages.forEach((programsStage:any)=>{
-            programsStage.programStageDataElements.forEach((programStageDataElement)=>{
-              let dataElementId = programStageDataElement.dataElement.id;
-              if(dataElementId && dataElementMapper[dataElementId]){
-                programStageDataElement.dataElement = dataElementMapper[dataElementId]
-              }
+          this.programsProvider.getProgramStageSectionsByIdsForEvents(stageSectionIds, currentUser).then((stageSectionData:any)=>{
+
+            dataElements.forEach((dataElement : any)=>{
+              dataElementMapper[dataElement.id] = dataElement;
             });
+            stageSectionData.forEach((stageSection:any)=>{
+              stageSectionMapper[stageSection.id] = stageSection;
+            });
+
+            programsStages.forEach((programsStage:any)=>{
+              programsStage.programStageDataElements.forEach((programStageDataElement)=>{
+                let dataElementId = programStageDataElement.dataElement.id;
+                if(dataElementId && dataElementMapper[dataElementId]){
+                  programStageDataElement.dataElement = dataElementMapper[dataElementId]
+                }
+              });
+            });
+
+
+            programsStages.forEach((programStage:any)=>{
+              programStage.programStageSections.forEach((stageSectionId:any)=>{
+                newStageData.push(stageSectionMapper[stageSectionId.id]);
+              });
+
+              programStage.programStageSections = newStageData;
+
+
+            });
+
+            resolve(programsStages);
+
+
+
           });
-          resolve(programsStages);
+
+
+
         }).catch(error=>{reject(error)});
       }).catch(error=>{reject(error)});
      });
@@ -358,34 +393,46 @@ export class EventCaptureFormProvider {
   }
 
 
-  dataElementMapper(programStageDataElement, usedDataElements, currentUser){
-    // let stageObject = {};
-    // let dataElementMerged = [];
-    // let programStageElementGroup = [];
-    //
-    //
-    //  this.dataElementProvider.getBulkDataElementsByName(usedDataElements, currentUser).then((dataElements: any) => {
-    //
-    //   //alert("data :"+JSON.stringify( this.dataElementMapper(programStageDataElement,dataElement) ));
-    //
-    //   dataElements.forEach((dataElement:any)=>{
-    //
-    //     //stageObject = dataElement;
-    //
-    //     if(programStageDataElement.dataElement.id == dataElement.id){
-    //
-    //       stageObject = dataElement;
-    //
-    //     }
-    //
-    //   })
-    //
-    //
-    //  });
-    //
-    //
-    //
-    // return stageObject;
+
+  getProgramStagesSection(programId,currentUser){
+
+    let stageSectionIds = [];
+    let newStageData = [];
+    let stageSectionMapper = {};
+    return new Promise((resolve, reject)=>{
+
+      this.programsProvider.getProgramsStages(programId,currentUser).then((programsStages:any)=>{
+        programsStages.forEach((programStage:any)=>{
+
+
+          programStage.programStageSections.forEach((stageSectionId:any)=>{
+            //alert("Stag "+JSON.stringify(stageSectionId.id))
+            stageSectionIds.push(stageSectionId.id);
+          });
+        });
+
+        this.programsProvider.getProgramStageSectionsByIdsForEvents(stageSectionIds, currentUser).then((stageSectionData:any)=>{
+          alert("Stag "+JSON.stringify(stageSectionData))
+          stageSectionData.forEach((stageSection:any)=>{
+            stageSectionMapper[stageSection.id] = stageSection;
+          });
+
+          programsStages.forEach((programStage:any)=>{
+            programStage.programStageSections.forEach((stageSectionId:any)=>{
+                 newStageData.push(stageSectionMapper[stageSectionId.id]);
+            });
+            programStage.programStageSections = newStageData;
+          });
+          resolve(programsStages);
+        }).catch(error=>{reject(error)});
+
+
+      });
+
+
+
+
+    })
   }
 
 

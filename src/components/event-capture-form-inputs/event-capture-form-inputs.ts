@@ -14,7 +14,7 @@ import {ActionSheetController} from "ionic-angular";
 })
 export class EventCaptureFormInputComponent implements OnInit{
 
-  @Input() trackedEntityAttribute;
+  @Input() programStageDataElement;
   @Input() currentUser;
   @Input() mandatory;
   @Input() data ;
@@ -33,8 +33,8 @@ export class EventCaptureFormInputComponent implements OnInit{
     this.textInputField = ['TEXT','LONG_TEXT'];
     this.supportValueTypes = ['BOOLEAN','TRUE_ONLY','DATE','TEXT','LONG_TEXT','INTEGER_NEGATIVE','INTEGER_POSITIVE','INTEGER','NUMBER','INTEGER_ZERO_OR_POSITIVE'];
 
-    if(this.trackedEntityAttribute && this.trackedEntityAttribute.id){
-      this.fieldLabelKey = this.trackedEntityAttribute.name;
+    if(this.programStageDataElement && this.programStageDataElement.id){
+      this.fieldLabelKey = this.programStageDataElement.dataElement.name;
       this.formLayout = "listLayout";
       this.settingProvider.getSettingsForTheApp(this.currentUser).then((appSettings : any)=>{
         let dataEntrySettings = appSettings.entryForm;
@@ -42,8 +42,8 @@ export class EventCaptureFormInputComponent implements OnInit{
           this.formLayout = dataEntrySettings.formLayout;
         }
         if(dataEntrySettings.label){
-          if(this.trackedEntityAttribute[dataEntrySettings.label]){
-            this.fieldLabelKey = this.trackedEntityAttribute[dataEntrySettings.label];
+          if(this.programStageDataElement[dataEntrySettings.label]){
+            this.fieldLabelKey = this.programStageDataElement[dataEntrySettings.label];
           }
         }
       });
@@ -53,12 +53,12 @@ export class EventCaptureFormInputComponent implements OnInit{
   showTooltips(){
     let title = this.fieldLabelKey;
     let subTitle = "";
-    if(this.trackedEntityAttribute.description){
-      title += ". Description : " + this.trackedEntityAttribute.description ;
+    if(this.programStageDataElement.dataElement.description){
+      title += ". Description : " + this.programStageDataElement.description ;
     }
-    subTitle += "Value Type : " +this.trackedEntityAttribute.valueType.toLocaleLowerCase().replace(/_/g," ");
-    if(this.trackedEntityAttribute.optionSet){
-      title += ". It has " +this.trackedEntityAttribute.optionSet.options.length + " options to select.";
+    subTitle += "Value Type : " +this.programStageDataElement.dataElement.valueType.toLocaleLowerCase().replace(/_/g," ");
+    if(this.programStageDataElement.dataElement.optionSet){
+      title += ". It has " +this.programStageDataElement.dataElement.optionSet.options.length + " options to select.";
     }
     let actionSheet = this.actionSheetCtrl.create({
       title: title,subTitle:subTitle

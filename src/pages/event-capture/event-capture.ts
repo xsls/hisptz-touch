@@ -185,7 +185,7 @@ export class EventCapturePage implements OnInit {
         if (selectedProgram && selectedProgram.id) {
           this.selectedProgram = selectedProgram;
 
-          this.eventCaptureFormProvider.loadingprogramInfo(this.selectedProgram.id,this.currentUser);
+          //this.eventCaptureFormProvider.loadingprogramInfo(this.selectedProgram.id,this.currentUser);
 
           this.programsProvider.setLastSelectedProgram(selectedProgram);
           this.updateEventCaptureSelections();
@@ -296,8 +296,6 @@ export class EventCapturePage implements OnInit {
       // this.eventProvider.loadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.selectedProgram.categoryCombo.id, this.attibCc, this.attribCos,this.currentUser).then((eventsData: any) => {
       let eventDataValues: any;
 
-      // alert("EventsData : "+JSON.stringify(eventsData))
-
       eventsData.events.forEach((event: any) => {
         currentEventsProgramsStage.push(event.programStage)
 
@@ -314,11 +312,6 @@ export class EventCapturePage implements OnInit {
 
             this.usedDataElements.push(dataRow.dataElement);
 
-            // this.dataOnEvents.push({
-            //   eventId: eventInfo.event,
-            //   dataElementId: dataRow.dataElement,
-            //   dataValue: dataRow.value
-            // })
           });
         });
 
@@ -329,9 +322,6 @@ export class EventCapturePage implements OnInit {
       }
 
       this.currentEvents = eventsData.events;
-      // alert("EventsData ProgStage: "+JSON.stringify(this.currentEvents[0].programStage))
-      // Array.from(new Set(currentEventsProgramsStage))
-      // alert("EventsData ProgStage: "+JSON.stringify(Array.from(new Set(currentEventsProgramsStage))))
       this.loadEvents();
 
     })
@@ -424,7 +414,7 @@ export class EventCapturePage implements OnInit {
   goToEventRegister(fab: FabContainer){
     fab.close();
     let params = {
-      selectedDataDimension : this.selectedDataDimension,
+      selectedDataDimension : this.getDataDimensions,
       event : ""
     };
     this.navCtrl.push('EventCaptureForm',{params:params});

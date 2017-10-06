@@ -84,50 +84,12 @@ export class EventCaptureForm implements OnInit{
     this.setLoadingMessages("Loading program metadata");
     this.loaded = false;
     this.initiateNewEvent(this.entryFormParameter,this.currentProgram);
+
+
     this.eventCaptureFormProvider.getProgramStages(this.currentProgram.id, this.currentUser).then((programStages:any)=>{
-      this.programStage = programStages;
+       this.programStage = programStages;
     })
 
-    // this.programsProvider.getProgramById(programId,this.currentUser).then((program : any)=>{
-    //
-    //
-    //   this.programsProvider.getProgramsStagesDataElements(programId,this.currentUser).then((programData:any)=>{
-    //     //alert("ProgramStages : "+JSON.stringify(programData.programStageDataElements))
-    //
-    //     programStageSections = programData.programStageSections;
-    //
-    //   });
-    //   //alert("selectedProg : "+JSON.stringify(program))
-    //
-    //   this.currentProgram = program;
-    //   if(this.entryFormParameter.event ==""){
-    //     //initiate new event
-    //     //  alert("progData : "+JSON.stringify(this.currentProgram))
-    //     // alert("progData : "+JSON.stringify(programStageSections))
-    //     //alert("new event: ")
-    //     this.initiateNewEvent(this.entryFormParameter,program);
-    //   }else{
-    //     //alert("load event: ")
-    //     this.loadingEvent(this.entryFormParameter.programId,this.entryFormParameter.orgUnitId,this.entryFormParameter.event);
-    //   }
-    //
-    //   // if(program.programStageSections !=null || program.programStageSections){
-    //   // if(programData.programStageSections !=null || programData.programStageSections){
-    //   if(programStageSections !=null || programStageSections){
-    //     // this.loadProgramStageSections(programData.programStageDataElements);
-    //     this.loadProgramStageSections(programStageSections);
-    //   }else{
-    //     // this.loadProgramStageDataElements(this.currentProgram.programStages[0].programStageDataElements);
-    //     this.loadProgramStageDataElements(this.entryFormParameter.programDataElements);
-    //   }
-    //
-    //
-    //  // });
-    //
-    // },error=>{
-    //   this.loadingData = false;
-    //   this.setToasterMessage("Fail to load program metadata : " + JSON.stringify(error));
-    // });
   }
 
   initiateNewEvent(entryFormParameter,program){

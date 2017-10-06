@@ -713,6 +713,22 @@ export class ProgramsProvider {
     });
   }
 
+  /**
+   *
+   * @param stageSectionIds
+   * @param currentUser
+   * @returns {Promise<T>}
+   */
+  getProgramStageSectionsByIdsForEvents(stageSectionIds,currentUser){
+    let attributeKey = "id";
+    let resource = 'programStageSections'
+    return new Promise((resolve, reject)=> {
+      this.sqlLite.getDataFromTableByAttributes(resource,attributeKey,stageSectionIds,currentUser.currentDatabase).then(( dataElements: any)=>{
+        resolve(dataElements);
+      },error=>{reject(error)})
+    });
+  }
+
 
 
 
