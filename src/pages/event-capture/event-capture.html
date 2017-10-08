@@ -73,6 +73,10 @@
   </ion-grid>
 
 
+  <!--<div *ngIf="loadingData && !showEmptyList" ></div>-->
+  <!--<page-loading loadingSize="large" [loadingMessage]="loadingMessage"></page-loading>-->
+
+
   <div *ngIf = "showEmptyList">
     <empty-list-notification [emptyListMessage]="'There are no events to display'"></empty-list-notification>
   </div>

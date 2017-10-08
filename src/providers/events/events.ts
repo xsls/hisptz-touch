@@ -113,9 +113,6 @@ export class EventsProvider {
     return new Promise((resolve, reject) =>{
       this.httpClient.get(url,currentUser).then((eventsData: any)=>{
         eventsData = JSON.parse(eventsData.data);
-
-        // alert("Events Downloaded Length: "+JSON.stringify(eventsData.events.length))
-
         resolve(eventsData)
 
       },error=>{
@@ -124,32 +121,6 @@ export class EventsProvider {
     });
   }
 
-
-  //
-  // /**
-  //  * loading 50 most recent events from the server
-  //  * @param orgUnit
-  //  * @param program
-  //  * @param dataDimensions
-  //  * @param currentUser
-  //  * @returns {Promise<T>}
-  //  */
-  // loadEventsFromServer(orgUnit,programId,programComboId,dataDimensions,currentUser){
-  //   let url = "/api/25/events.json?orgUnit="+orgUnit.id + "&programStage="+programId;
-  //   if(dataDimensions.length > 0){
-  //     let attributeCos = dataDimensions.attributeCos.toString();
-  //     //attributeCos = attributeCos.replace(/,/g, ';');
-  //     url += "&attributeCc="+programComboId+"&attributeCos="+attributeCos;
-  //   }
-  //   url += "&pageSize=50&page=1&totalPages=true";
-  //   return new Promise((resolve, reject) =>{
-  //     this.http.get(url,currentUser).subscribe(events=>{
-  //       resolve(events.json())
-  //     },error=>{
-  //       reject(error.json());
-  //     });
-  //   });
-  // }
 
 
 

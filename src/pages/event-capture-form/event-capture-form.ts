@@ -7,6 +7,7 @@ import {ProgramStageSectionsProvider} from "../../providers/program-stage-sectio
 import {EventCaptureFormProvider} from "../../providers/event-capture-form/event-capture-form";
 import {DataElementsProvider} from "../../providers/data-elements/data-elements";
 import {OrganisationUnitsProvider} from "../../providers/organisation-units/organisation-units";
+import {AppProvider} from "../../providers/app/app";
 
 declare var dhis2: any;
 
@@ -23,7 +24,7 @@ declare var dhis2: any;
 })
 export class EventCaptureForm implements OnInit{
 
-  public loadingData : boolean = false;
+  public eventCompleteness : boolean = false;
   public loadingMessages : any = [];
   public loadingMessage : string ="";
   public currentUser : any;
@@ -39,12 +40,15 @@ export class EventCaptureForm implements OnInit{
   public dataValues : any;
   public eventComment : string;
   programStages:any;
+  dataObject:any;
+  dataElementValueObject:any;
 
   loaded:boolean = false;
-  reportDateTag:any;
   programRules:any;
   programRulesVariables:any;
   programStage:any;
+  eventDate:any;
+  status:any;
 
   //pagination controller
   public currentPage : number ;
@@ -52,11 +56,10 @@ export class EventCaptureForm implements OnInit{
   //network
   public network : any;
 
-  constructor(public params:NavParams,public eventProvider :EventsProvider,public programsProvider : ProgramsProvider,
-              public toastCtrl: ToastController,public user : UserProvider,public actionSheetCtrl: ActionSheetController,
-              public programStageSectionsProvider:ProgramStageSectionsProvider,public navCtrl: NavController,
-              public eventCaptureFormProvider : EventCaptureFormProvider, public dataElementProvider:DataElementsProvider,
-              public organisationUnitProvider:OrganisationUnitsProvider){
+  constructor(public params:NavParams,public programsProvider : ProgramsProvider, public user : UserProvider,
+              public navCtrl: NavController, public eventCaptureFormProvider : EventCaptureFormProvider,
+              public organisationUnitProvider:OrganisationUnitsProvider, public eventsProvider :EventsProvider,
+              public appProvider:AppProvider){
 
   }
 
@@ -64,6 +67,8 @@ export class EventCaptureForm implements OnInit{
     this.programStageDataElements  = [];
     this.programStageSections = [];
     this.currentPage = 0;
+    this.dataObject = {};
+    this.dataElementValueObject = {};
     this.user.getCurrentUser().then(user=>{
       this.currentUser = user;
       this.event = true;
@@ -78,24 +83,11 @@ export class EventCaptureForm implements OnInit{
   }
 
   loadProgramMetadata(){
-    this.loadingData = false;
+    this.eventCompleteness = false;
     this.loadingMessages = [];
-    let programStageSections:any;
     this.setLoadingMessages("Loading program metadata");
     this.loaded = false;
-    this.initiateNewEvent(this.entryFormParameter,this.currentProgram);
 
-
-    this.eventCaptureFormProvider.getProgramStages(this.currentProgram.id, this.currentUser).then((programStages:any)=>{
-       this.programStage = programStages;
-    })
-
-  }
-
-  initiateNewEvent(entryFormParameter,program){
-    //alert("Full Program info :"+JSON.stringify(this.programStages));
-
-    this.dataValues = {};
     this.event = {
       program : this.currentProgram.id,
       programStage:'',
@@ -104,171 +96,14 @@ export class EventCaptureForm implements OnInit{
       eventDate : "",
       dataValues : []
     };
-    //add category combination
-    if(entryFormParameter.selectedDataDimension.length > 0){
-      let attributeCategoryOptions = entryFormParameter.selectedDataDimension.toString();
-      attributeCategoryOptions = attributeCategoryOptions.replace(/,/g, ';');
-      this.event["attributeCategoryOptions"] = attributeCategoryOptions;
-    }
+
+    this.eventCaptureFormProvider.getProgramStages(this.currentProgram.id, this.currentUser).then((programStages:any)=>{
+       this.programStage = programStages;
+    })
   }
-
-
-  // loadProgramStageSections(programStageSectionsIds){
-  //   this.setLoadingMessages("Loading program's sections");
-  //
-  //   this.programStageSectionsProvider.getProgramsStageSections(programStageSectionsIds,this.currentUser).then((programStageSections:any)=>{
-  //     //alert("ProgSections  :"+JSON.stringify(programStageSections));
-  //     this.programStageSections = programStageSections;
-  //     this.loadProgramStageDataElements(this.currentProgram.programStages[0].programStageDataElements);
-  //   },error=>{
-  //     this.loadingData = false;
-  //     this.setToasterMessage("Fail to load program's sections : " + JSON.stringify(error));
-  //   });
-  // }
-
-  // loadProgramStageDataElements(programStageDataElementsIds){
-  //   this.setLoadingMessages("Loading Entry fields details");
-  //   this.programStageDataElements = [];
-  //
-  //   // programStageDataElementsIds.forEach((dataElementId:any)=>{
-  //   //   alert("id: "+dataElementId)
-  //   //
-  //   // })
-  //   this.programsProvider.getProgramsStagesDataElements(this.entryFormParameter.programId,this.currentUser).then((programStageDataElements:any)=>{
-  //     // alert("ProgStageDataElemenyt  :"+JSON.stringify(programStageDataElements));
-  //
-  //     programStageDataElements.programStageDataElements.forEach((programStageDataElement)=>{
-  //       //alert("id: "+JSON.stringify(programStageDataElement['dataElements']));
-  //
-  //       this.programStageDataElements.push(programStageDataElement);
-  //     });
-  //
-  //
-  //     this.eventCaptureFormProvider.getEventCaptureEntryFormMetaData(this.programStageSections,this.programStageDataElements).then((entryFormSections:any)=>{
-  //      // alert("entry form  :"+JSON.stringify(entryFormSections));
-  //       this.entryFormSections = entryFormSections;
-  //
-  //       this.paginationLabel = (this.currentPage + 1) + "/"+this.entryFormSections.length;
-  //       this.loadingData = false;
-  //     },error=>{
-  //       this.loadingData = false;
-  //     });
-  //
-  //   },error=>{
-  //     this.loadingData = false;
-  //     this.setToasterMessage("Fail to load entry fields details : " + JSON.stringify(error));
-  //   });
-  // }
-
-  // loadingEvent(programId,orgUnitId,eventId){
-  //   this.setLoadingMessages("Loading event");
-  //   let eventTableId = programId+"-"+orgUnitId+"-"+eventId;
-  //   this.dataValues = {};
-  //   this.eventProvider.loadingEventByIdFromStorage(eventTableId,this.currentUser).then((event:any)=>{
-  //     this.event = event;
-  //     if(event.notes !="0"){
-  //       this.eventComment = event.notes;
-  //     }
-  //     event.dataValues.forEach((dataValue : any)=>{
-  //       this.dataValues[dataValue.dataElement] = dataValue.value;
-  //     });
-  //   },error=>{
-  //     //fail to load event from local storage
-  //   });
-  // }
-
-  // saveEvent(){
-  //   this.loadingMessages = [];
-  //   this.loadingData = true;
-  //   this.setLoadingMessages("Preparing data for saving");
-  //   this.programsProvider.getProgramStageDataElements(this.currentProgram.programStages[0].programStageDataElements,this.currentUser).then((programStageDataElements:any)=>{
-  //     let isFormValid = this.hasFormValidForSubmission(programStageDataElements);
-  //     if(isFormValid){
-  //       //checking for event status completion
-  //       this.event.status == "COMPLETED"? this.event["completedDate"] = this.eventProvider.getFormattedDate(new Date()) : delete this.event.completedDate;
-  //       //checking for event comments
-  //       this.eventComment !=""?this.event.notes = this.eventComment : delete this.event.notes;
-  //       //empty event dataValues
-  //       this.event.dataValues = [];
-  //       //update event sync status
-  //       // if has been updated change status to 'not synced'
-  //       if(this.entryFormParameter.event ==""){
-  //         this.event["syncStatus"] = "new event";
-  //         this.event["event"]= dhis2.util.uid();
-  //       }else{
-  //         this.event["syncStatus"] = "not synced";
-  //       }
-  //       this.eventProvider.getEventDataValues(this.dataValues,programStageDataElements).then((dataValues:any)=>{
-  //         dataValues.forEach(dataValue=>{
-  //           this.event.dataValues.push(dataValue);
-  //         });
-  //         //saving event to local storage
-  //         this.setLoadingMessages("Saving new event to local storage");
-  //         this.event["orgUnitName"] = this.entryFormParameter.orgUnitName;
-  //         this.event["programName"] = this.entryFormParameter.programName;
-  //         this.eventProvider.saveEvent(this.event,this.currentUser).then(()=>{
-  //           this.loadingData = false;
-  //           this.navCtrl.pop();
-  //         },error=>{
-  //           this.loadingData = false;
-  //           this.setToasterMessage("Fail to save new event to local storage : " + JSON.stringify(error));
-  //         });
-  //       })
-  //     }else{
-  //       this.loadingData = false;
-  //       this.setToasterMessage("Please make sure your enter all required fields, before saving");
-  //     }
-  //   });
-  // }
 
   cancel(){
     this.navCtrl.pop();
-  }
-
-  /**
-   * checking if all required fields has been field
-   * @param programStageDataElements
-   * @returns {boolean}
-   */
-  hasFormValidForSubmission(programStageDataElements){
-    let isValid = true;
-    programStageDataElements.forEach((programStageDataElement:any)=>{
-      if(programStageDataElement.compulsory !="0" && !this.dataValues[programStageDataElement.dataElement.id]){
-        isValid = false;
-      }
-    });
-    return isValid;
-  }
-
-  //@todo add more information
-  showTooltips(dataElement,categoryComboName,isMandatory){
-    let title = dataElement.name + (categoryComboName != 'default' ? " " +categoryComboName:"");
-    let subTitle = "";
-    if(isMandatory == "true"){
-      title += ". This field is mandatory";
-    }else{
-      title += ". This field is optional";
-    }
-    if(dataElement.description){
-      title += ". Description : " + dataElement.description ;
-    }
-    subTitle += "Value Type : " +dataElement.valueType.toLocaleLowerCase().replace(/_/g," ");
-    if(dataElement.optionSet){
-      title += ". It has " +dataElement.optionSet.options.length + " options to select.";
-    }
-    let actionSheet = this.actionSheetCtrl.create({
-      title: title,subTitle:subTitle
-    });
-    actionSheet.present();
-  }
-
-  //todo get input label attribute form setting
-  getDisplayName(dataElement){
-    // this.dataElementProvider.getDataElementsByName(dataElement, this.currentUser).then((dataName:any)=>{
-    //   alert("Dataname: "+JSON.stringify(dataName))
-    // })
-
-    return dataElement;
   }
 
   changePagination(page){
@@ -288,32 +123,53 @@ export class EventCaptureForm implements OnInit{
     this.loadingMessages.push(message);
   }
 
-  setToasterMessage(message){
-    let toast = this.toastCtrl.create({
-      message: message,
-      duration: 4000
-    });
-    toast.present();
+
+
+  updateEventData(updateDataValue){
+    let id = updateDataValue.id.split("-")[0];
+    this.dataElementValueObject[id] = updateDataValue.value;
+    this.dataObject[updateDataValue.id] = updateDataValue;
   }
 
-  setStickToasterMessage(message){
-    let toast = this.toastCtrl.create({
-      message: message,
-      showCloseButton : true
+
+  registerEvent(){
+
+    let dataElementInfo = [];
+    Object.keys(this.dataElementValueObject).forEach(key=>{
+      dataElementInfo.push({
+        value: this.dataElementValueObject[key] , dataElementId: key
+      })
     });
-    toast.present();
+
+    this.event = {
+      event: dhis2.util.uid(),
+      program : this.currentProgram.id,
+      programStage:'',
+      orgUnit : this.currentOrgUnit.id,
+      orgUnitName : this.currentOrgUnit.name,
+      status : this.status,
+      eventDate : this.eventDate,
+      completeDate: "",
+      attributeCategoryOptions: this.entryFormParameter.selectedDataDimension.toString().replace(/,/g, ';'),
+      dataValues : dataElementInfo,
+      notes: this.eventComment,
+      syncStatus: "not-synced"
+
+    };
+
+    this.eventsProvider.saveEvent(this.event, this.currentUser).then(()=>{
+      this.eventCompleteness = true;
+      this.appProvider.setNormalNotification("Registered event has been successful saved");
+      this.navCtrl.pop();
+    },error=>{
+      this.eventCompleteness = true;
+      this.appProvider.setNormalNotification("Fail to save new event to local storage : " + JSON.stringify(error));
+    });
+
+
   }
 
-  //-------------------------------------------------------------------------------------------------------------------------
-
-  // loadingprogramInfo(programId){
-  //   this.programsProvider.getProgramById(programId,this.currentUser).then((program : any)=>{
-  //     alert("ProgramStages : "+JSON.stringify(program))
-  //   });
-  // }
 
 
-
-  //-------------------------------------------------------------------------------------------------------------------------
 
 }

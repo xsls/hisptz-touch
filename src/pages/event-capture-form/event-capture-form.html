@@ -37,32 +37,67 @@
         {{currentProgram.incidentDateLabel}} <span class="required">*</span>
       </div>
       <ion-item>
-        <ion-datetime doneText="Update" displayFormat="YYYY-MM-DD" pickerFormat="YYYY MM DD" [(ngModel)]="event.eventDate"></ion-datetime>
+        <ion-datetime doneText="Update" displayFormat="YYYY-MM-DD" pickerFormat="YYYY MM DD" [(ngModel)]="eventDate"></ion-datetime>
       </ion-item>
-      <button color="primary" ion-button small full (tap)="cancel()" *ngIf="event.eventDate =='' ">
+      <button color="primary" ion-button round full (tap)="cancel()" *ngIf="event.eventDate =='' ">
         cancel
       </button>
+
 
 
       <!--{{ programStage |json }}-->
 
 
+      <div *ngIf="eventDate">
 
       <div *ngFor="let programStages of programStage" >
-        <!--{{programStage.name}}-->
-
         <div *ngFor="let stageLevel of programStages.programStageDataElements" >
-          <!--{{stageLevel.dataElement.name}} <span *ngIf="stageLevel.compulsory" class="required">*</span>-->
-
-          <!--{{stageLevel.dataElement.valueType}}-->
           <event-capture-form-inputs [programStageDataElement]="stageLevel"
                                  [currentUser]="currentUser"
                                  [data]="dataObject"
                                  [mandatory]="stageLevel.compulsory"
-                                 (onChange)="updateData($event)"></event-capture-form-inputs>
+                                 (onChange)="updateEventData($event)"></event-capture-form-inputs>
         </div>
+      </div>
+
+
+      <hr><hr>
+      <!-- event completion as well as event comments -->
+      <div>
+        Is Event Completed ?
+      </div>
+
+      <ion-item>
+        <ion-label>Touch to select/update</ion-label>
+        <ion-select [(ngModel)]="status" interface="action-sheet" >
+          <ion-option value="COMPLETED">Yes</ion-option>
+          <ion-option value="ACTIVE">No</ion-option>
+        </ion-select>
+      </ion-item>
+
+      <div>
+        <b>Comments</b>
+      </div>
+      <ion-item>
+        <ion-textarea [(ngModel)]="eventComment" placeholder="Add your comment here"></ion-textarea>
+      </ion-item>
+
+      <!-- saving and cancel button for event capture form -->
+      <ion-row>
+        <ion-col>
+          <button color="primary" round ion-button full (tap)="registerEvent()">
+            Save
+          </button>
+        </ion-col>
+        <ion-col >
+          <button color="danger" round ion-button full (tap)="cancel()">
+            cancel
+          </button>
+        </ion-col>
+      </ion-row>
 
       </div>
+
 
 
 

@@ -4,6 +4,8 @@ import {EventsProvider} from "../../providers/events/events";
 import {ProgramsProvider} from "../../providers/programs/programs";
 import {UserProvider} from "../../providers/user/user";
 import {AppProvider} from "../../providers/app/app";
+import {OrganisationUnitsProvider} from "../../providers/organisation-units/organisation-units";
+import {DataElementsProvider} from "../../providers/data-elements/data-elements";
 
 
 
@@ -26,13 +28,14 @@ export class EventView implements OnInit{
   public currentUser : any;
   public params : any;
 
-  public currentProgram : any;
+  currentProgram : any;
+  currentOrgUnit : any;
   public event : any;
   public dataElementMapper : any;
 
   constructor(public NavParams:NavParams,public eventProvider :EventsProvider,public Program : ProgramsProvider,
-              public toastCtrl: ToastController,public user : UserProvider,public appProvider:AppProvider,
-              public programsProvider: ProgramsProvider, public navCtrl: NavController){
+              public orgUnitProvider:OrganisationUnitsProvider, public toastCtrl: ToastController,public user : UserProvider,public appProvider:AppProvider,
+              public programsProvider: ProgramsProvider, public navCtrl: NavController, public dataElementProvider:DataElementsProvider){
 
 
   }
@@ -40,50 +43,66 @@ export class EventView implements OnInit{
   ngOnInit() {
     this.user.getCurrentUser().then(user=>{
       this.currentUser = user;
+      this.currentProgram = this.programsProvider.lastSelectedProgram;
+      this.currentOrgUnit = this.orgUnitProvider.lastSelectedOrgUnit;
       this.params = this.NavParams.get("params");
-      // this.loadProgramMetadata(this.params.programId);
+      //alert("ProgDaaata is: "+JSON.stringify(this.params))
+      this.loadProgramMetadata();
     });
+
+
   }
 
-  // ionViewDidEnter(){
-  //   if(this.params && this.params.programId){
-  //     this.loadProgramMetadata(this.params.programId);
-  //   }
-  // }
+  ionViewDidEnter(){
+    if(this.params && this.params.programId){
+      this.loadProgramMetadata();
+    }
+  }
 
-  // /**
-  //  *
-  //  * @param programId
-  //    */
-  // loadProgramMetadata(programId){
-  //   this.loadingData = true;
-  //   this.loadingMessages = [];
-  //   this.setLoadingMessages("Loading program metadata");
-  //   this.Program.getProgramById(programId,this.currentUser).then((program : any)=>{
-  //     this.currentProgram = program;
-  //     this.loadProgramStageDataElements(this.currentProgram.programStages[0].programStageDataElements);
-  //   },error=>{
-  //     this.loadingData = false;
-  //     this.setToasterMessage("Fail to load program metadata : " + JSON.stringify(error));
-  //   });
-  // }
+  /**
+   *
+   * @param programId
+     */
+  loadProgramMetadata(){
+    this.loadingData = true;
+    this.loadingMessages = [];
+    this.setLoadingMessages("Loading program metadata");
+    this.loadProgramStageDataElements();
+  }
 
-  // /**
-  //  *
-  //  * @param programStageDataElementsIds
-  //    */
-  // loadProgramStageDataElements(programStageDataElementsIds){
-  //   this.dataElementMapper = {};
-  //   this.ProgramStageDataElements.getProgramStageDataElements(programStageDataElementsIds,this.currentUser).then((programStageDataElements:any)=>{
-  //     programStageDataElements.forEach((programStageDataElement)=>{
-  //       this.dataElementMapper[programStageDataElement.dataElement.id] = programStageDataElement.dataElement;
-  //     });
-  //     this.loadingEvent(this.params.programId,this.params.orgUnitId,this.params.event);
-  //   },error=>{
-  //     this.loadingData = false;
-  //     this.setToasterMessage("Fail to load entry fields details : " + JSON.stringify(error));
-  //   });
-  // }
+  /**
+   *
+   * @param programStageDataElementsIds
+     */
+  loadProgramStageDataElements(){
+   let dataElementIds = [];
+    this.dataElementMapper = {};
+    this.programsProvider.getProgramsStages(this.currentProgram.id,this.currentUser).then((programsStages:any)=>{
+
+
+      programsStages.forEach((programsStage:any)=> {
+        programsStage.programStageDataElements.forEach((programStageDataElement) => {
+          dataElementIds.push(programStageDataElement.dataElement.id);
+          //alert("programStageDataElement is: "+JSON.stringify(programStageDataElement))
+        })
+
+      });
+
+    });
+    this.dataElementProvider.getDataElementsByIdsForEvents(dataElementIds,this.currentUser).then((programStageDataElements:any)=>{
+      alert("dataElement is: "+JSON.stringify(dataElementIds))
+    // this.programsProvider.getProgramsStages(programStageDataElementsIds,this.currentUser).then((programStageDataElements:any)=>{
+      programStageDataElements.forEach((programStageDataElement)=>{
+        // this.dataElementMapper[programStageDataElement.dataElement.id] = programStageDataElement.dataElement;
+        this.dataElementMapper[programStageDataElement.id] = programStageDataElement;
+        // alert("dataElement is: "+JSON.stringify(programStageDataElement))
+      });
+      this.loadingEvent(this.params.event);
+    },error=>{
+      this.loadingData = false;
+      this.appProvider.setNormalNotification("Fail to load entry fields details : " + JSON.stringify(error));
+    });
+  }
 
   /**
    *
@@ -91,9 +110,9 @@ export class EventView implements OnInit{
    * @param orgUnitId
    * @param eventId
    */
-  loadingEvent(programId,orgUnitId,eventId){
+  loadingEvent(eventId){
     this.setLoadingMessages("Loading event");
-    let eventTableId = programId+"-"+orgUnitId+"-"+eventId;
+    let eventTableId = this.currentProgram.id+"-"+this.currentOrgUnit.id+"-"+eventId;
     this.eventProvider.loadingEventByIdFromStorage(eventTableId,this.currentUser).then((event:any)=>{
       this.event = event;
       this.loadingData = false;

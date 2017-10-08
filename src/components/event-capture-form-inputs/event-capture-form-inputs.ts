@@ -36,6 +36,7 @@ export class EventCaptureFormInputComponent implements OnInit{
     if(this.programStageDataElement && this.programStageDataElement.id){
       this.fieldLabelKey = this.programStageDataElement.dataElement.name;
       this.formLayout = "listLayout";
+
       this.settingProvider.getSettingsForTheApp(this.currentUser).then((appSettings : any)=>{
         let dataEntrySettings = appSettings.entryForm;
         if(dataEntrySettings.formLayout){

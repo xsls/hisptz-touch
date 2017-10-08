@@ -10,58 +10,66 @@
   <div *ngIf="programStageDataElement.optionSet" class="input-field-container">
     <option-set-input-field (onChange)="updateValue($event)"
                             [dataElementId]="programStageDataElement.dataElement.id"
-                            [categoryOptionComboId]="'programStageDataElement'"
+                            [categoryOptionComboId]="'programStageDataElement.dataElement'"
                             [data]="data"
                             [options]="programStageDataElement.optionSet.options">
     </option-set-input-field>
   </div>
   <div *ngIf="!programStageDataElement.optionSet" class="input-field-container">
-    <div *ngIf="textInputField.indexOf(programStageDataElement.valueType) > -1">
+    <div *ngIf="textInputField.indexOf(programStageDataElement.dataElement.valueType) > -1">
       <text-input-field (onChange)="updateValue($event)"
                         [dataElementId]="programStageDataElement.dataElement.id"
-                        [categoryOptionComboId]="'programStageDataElement'"
+                        [categoryOptionComboId]="'programStageDataElement.dataElement'"
                         [data]="data"
-                        [valueType]="programStageDataElement.valueType">
+                        [valueType]="programStageDataElement.dataElement.valueType">
       </text-input-field>
     </div>
     <div *ngIf="numericalInputField.indexOf(programStageDataElement.dataElement.valueType) > -1">
       <numerical-input-field (onChange)="updateValue($event)"
                              [dataElementId]="programStageDataElement.dataElement.id"
-                             [categoryOptionComboId]="'programStageDataElement'"
+                             [categoryOptionComboId]="'programStageDataElement.dataElement'"
                              [data]="data"
-                             [valueType]="programStageDataElement.valueType">
+                             [valueType]="programStageDataElement.dataElement.valueType">
       </numerical-input-field>
     </div>
 
     <div *ngIf="programStageDataElement.dataElement.valueType == 'DATE'">
       <date-input-field (onChange)="updateValue($event)"
                         [dataElementId]="programStageDataElement.dataElement.id"
-                        [categoryOptionComboId]="'programStageDataElement'"
+                        [categoryOptionComboId]="'programStageDataElement.dataElement'"
                         [data]="data">
       </date-input-field>
     </div>
     <div *ngIf="programStageDataElement.dataElement.valueType == 'TRUE_ONLY'">
       <true-only-input-field (onChange)="updateValue($event)"
                              [dataElementId]="programStageDataElement.dataElement.id"
-                             [categoryOptionComboId]="'programStageDataElement'"
+                             [categoryOptionComboId]="'programStageDataElement.dataElement'"
                              [data]="data">
       </true-only-input-field>
     </div>
     <div *ngIf="programStageDataElement.dataElement.valueType == 'BOOLEAN'">
       <boolean-input-field (onChange)="updateValue($event)"
                            [dataElementId]="programStageDataElement.dataElement.id"
-                           [categoryOptionComboId]="'programStageDataElement'"
+                           [categoryOptionComboId]="'programStageDataElement.dataElement'"
                            [data]="data">
       </boolean-input-field>
     </div>
 
-    <div *ngIf="programStageDataElement.dataElement.valueType == 'NUMBER'">
-      <numerical-input-field (onChange)="updateValue($event)"
+    <div *ngIf="programStageDataElement.dataElement.valueType == 'GENDER'">
+      <gender-input-field (onChange)="updateValue($event)"
                            [dataElementId]="programStageDataElement.dataElement.id"
-                           [categoryOptionComboId]="'programStageDataElement'"
+                           [categoryOptionComboId]="'programStageDataElement.dataElement'"
                            [data]="data">
-      </numerical-input-field>
+      </gender-input-field>
     </div>
+
+    <!--<div *ngIf="programStageDataElement.dataElement.valueType == 'NUMBER'">-->
+      <!--<numerical-input-field (onChange)="updateValue($event)"-->
+                           <!--[dataElementId]="programStageDataElement.dataElement.id"-->
+                           <!--[categoryOptionComboId]="'programStageDataElement'"-->
+                           <!--[data]="data">-->
+      <!--</numerical-input-field>-->
+    <!--</div>-->
 
     <div *ngIf="supportValueTypes.indexOf(programStageDataElement.dataElement.valueType) == -1">
       <div padding>

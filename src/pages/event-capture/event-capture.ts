@@ -48,22 +48,10 @@ export class EventCapturePage implements OnInit {
   attibCc:any;
   attribCos:any;
 
-
-  programNamesByUserRoles: any;
   currentEvents: any;
   eventListSections: any;
-  isAllParameterSet: boolean;
   showEmptyList: boolean = false;
-  selectedOrgUnitId: any;
-  selectedProgramStages: any;
   table: any;
-  assignedPrograms: any;
-  selectedProgramId: any;
-  selectedProgramCatCombo: any;
-  assignedProgramCategoryOptions: any;
-  programInfo: any;
-  //dataOnEvents: any;
-  CategoryOptionLabel: any;
   programLoading: boolean = false;
   hasOptions: boolean = false;
   eventsData: any;
@@ -77,15 +65,12 @@ export class EventCapturePage implements OnInit {
   currentAvailableOnEvents: any;
 
   currentPeriodOffset: any;
-  selectedOption: any;
   selectedPeriod: any;
-  userRoleData: any;
   network: any;
 
   constructor(private navCtrl: NavController, private userProvider: UserProvider, private modalCtrl: ModalController,
               private organisationUnitsProvider: OrganisationUnitsProvider, private programsProvider: ProgramsProvider, private appProvider: AppProvider,
-              private sqlLiteProvider: SqlLiteProvider, private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider,
-              private eventCaptureFormProvider:EventCaptureFormProvider) {
+              private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider) {
   }
 
   ngOnInit() {
@@ -184,12 +169,10 @@ export class EventCapturePage implements OnInit {
       modal.onDidDismiss((selectedProgram: any) => {
         if (selectedProgram && selectedProgram.id) {
           this.selectedProgram = selectedProgram;
-
-          //this.eventCaptureFormProvider.loadingprogramInfo(this.selectedProgram.id,this.currentUser);
-
           this.programsProvider.setLastSelectedProgram(selectedProgram);
           this.updateEventCaptureSelections();
           this.updateDataSetCategoryCombo(this.selectedProgram.categoryCombo);
+          this.getDataDimensions();
         }
       });
       modal.present();
@@ -286,14 +269,12 @@ export class EventCapturePage implements OnInit {
 
   loadEventsToDisplay() {
     this.loadingData = true;
-    //this.dataOnEvents = [];
+    this.showEmptyList = false;
+    this.loadingMessage = "Loading current events from server based on selected inputs";
     this.usedDataElements = [];
     let currentEventsProgramsStage = [];
 
-    //this.eventCaptureFormProvider.loadingprogramInfo(this.selectedProgram.id,this.currentUser);
-
     this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
-      // this.eventProvider.loadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.selectedProgram.categoryCombo.id, this.attibCc, this.attribCos,this.currentUser).then((eventsData: any) => {
       let eventDataValues: any;
 
       eventsData.events.forEach((event: any) => {
@@ -301,8 +282,9 @@ export class EventCapturePage implements OnInit {
 
       })
 
-      if (eventsData.events.length !== 0) {
+      if (eventsData.events.length > 0) {
         this.showEmptyList = false;
+
         this.eventsData = eventsData.events;
 
         this.eventsData.forEach((eventInfo: any) => {
@@ -313,16 +295,23 @@ export class EventCapturePage implements OnInit {
             this.usedDataElements.push(dataRow.dataElement);
 
           });
+
+
+
         });
 
+
+        this.loadEvents();
+
       } else {
+        this.loadingData = false;
         this.showEmptyList = true;
         this.tableFormat = false;
         this.appProvider.setNormalNotification("There are no events to display on " + this.selectedProgram.name);
       }
 
+
       this.currentEvents = eventsData.events;
-      this.loadEvents();
 
     })
 
@@ -330,6 +319,9 @@ export class EventCapturePage implements OnInit {
 
 
   loadEvents() {
+    this.loadingData = true;
+    this.showEmptyList = false;
+    this.loadingMessage = "Preparing events view display";
     this.table = {
       header: [], rows: []
     };
@@ -341,8 +333,6 @@ export class EventCapturePage implements OnInit {
     let SortedDataElementIds = Array.from(new Set(this.usedDataElements));
 
     this.selectionList = SortedDataElementIds;
-
-
 
     SortedDataElementIds.forEach((list: any) => {
       this.dataElementsProvider.getDataElementsByName(list, this.currentUser).then((results: any) => {
@@ -359,6 +349,9 @@ export class EventCapturePage implements OnInit {
 
         if(SortedDataElementIds.length == this.currentAvailableEvents.length){
           this.loadEventListAsTable();
+        }else {
+          this.loadingData = false;
+          this.showEmptyList = true;
         }
 
       })
@@ -367,7 +360,12 @@ export class EventCapturePage implements OnInit {
 
 
   loadEventListAsTable(){
+    this.loadingData = true;
+    this.loadingMessage = "preparing data";
+    this.showEmptyList = false;
     this.eventProvider.getEventListInTableFormat(this.currentEvents,this.currentAvailableEvents).then((table:any)=>{
+      this.loadingData = false;
+      this.showEmptyList = false;
       this.tableFormat = table;
       this.eventListSections = [];
     });
@@ -395,26 +393,26 @@ export class EventCapturePage implements OnInit {
   }
 
 
-  /**
-   * navigate to event
-   * @param event
-   */
-  goToEventView(event){
-    let params = {
-      orgUnitId : this.selectedOrgUnit.id,
-      orgUnitName : this.selectedOrgUnit.name,
-      programId : this.selectedProgram.id,
-      programName : this.selectedProgram.name,
-      event : event.event
-    };
-    this.navCtrl.push('EventView',{params:params});
-  }
+  // /**
+  //  * navigate to event
+  //  * @param event
+  //  */
+  // goToEventView(event){
+  //
+  //   let params = {
+  //     currentEvent: this.currentEvents,
+  //     event : event.event
+  //   };
+  //
+  //   //alert("Event is "+JSON.stringify(params))
+  //   this.navCtrl.push('EventView',{params:params});
+  // }
 
 
   goToEventRegister(fab: FabContainer){
     fab.close();
     let params = {
-      selectedDataDimension : this.getDataDimensions,
+      selectedDataDimension : this.getDataDimensions(),
       event : ""
     };
     this.navCtrl.push('EventCaptureForm',{params:params});
