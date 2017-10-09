@@ -16,6 +16,7 @@ export class NumericalInputFieldComponent implements OnInit{
   @Input() categoryOptionComboId;
   @Input() data;
   @Input() valueType;
+  @Input() mandatory;
   @Output() onChange = new EventEmitter();
   inputFieldValue : any;
   //{"id":"s46m5MS0hxu-Prlt0C1RF0s","value":"1","status":"synced"}
@@ -27,15 +28,16 @@ export class NumericalInputFieldComponent implements OnInit{
     if(this.data && this.data[fieldId]){
       this.inputFieldValue  = this.data[fieldId].value;
     }
+    this.mandatory
   }
 
   updateValues(){
     let fieldId = this.dataElementId + "-" + this.categoryOptionComboId;
     if(this.data && this.data[fieldId] && this.inputFieldValue  != this.data[fieldId].value){
-      this.onChange.emit({"id":fieldId,"value":this.inputFieldValue,"status":"not-synced"});
+      this.onChange.emit({"id":fieldId,"value":this.inputFieldValue,"status":"not-synced","mandatory":this.mandatory});
     }else if(this.data && !this.data[fieldId]){
       if(this.inputFieldValue){
-        this.onChange.emit({"id":fieldId,"value":this.inputFieldValue,"status":"not-synced"});
+        this.onChange.emit({"id":fieldId,"value":this.inputFieldValue,"status":"not-synced", "mandatory":this.mandatory});
       }
     }
   }

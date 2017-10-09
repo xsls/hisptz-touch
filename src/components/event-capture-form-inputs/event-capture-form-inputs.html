@@ -5,75 +5,71 @@
   <div (click)="showTooltips()" class="inputLabel">
     {{ fieldLabelKey }}
     <span *ngIf="mandatory" class="required">&nbsp;*</span>
-    <span *ngIf="programStageDataElement.dataElement.description">&nbsp;&nbsp;<ion-icon color="icon-color" name="help-circle"></ion-icon></span>
+    <span *ngIf="programStageDataElement.description">&nbsp;&nbsp;<ion-icon color="icon-color" name="help-circle"></ion-icon></span>
   </div>
+
   <div *ngIf="programStageDataElement.optionSet" class="input-field-container">
     <option-set-input-field (onChange)="updateValue($event)"
-                            [dataElementId]="programStageDataElement.dataElement.id"
-                            [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                            [dataElementId]="programStageDataElement.id"
+                            [categoryOptionComboId]="'programStageDataElement'"
                             [data]="data"
+                            [mandatory]="mandatory"
                             [options]="programStageDataElement.optionSet.options">
     </option-set-input-field>
   </div>
+
   <div *ngIf="!programStageDataElement.optionSet" class="input-field-container">
-    <div *ngIf="textInputField.indexOf(programStageDataElement.dataElement.valueType) > -1">
+
+
+    <div *ngIf="textInputField.indexOf(programStageDataElement.valueType) > -1">
       <text-input-field (onChange)="updateValue($event)"
-                        [dataElementId]="programStageDataElement.dataElement.id"
-                        [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                        [dataElementId]="programStageDataElement.id"
+                        [categoryOptionComboId]="'programStageDataElement'"
                         [data]="data"
-                        [valueType]="programStageDataElement.dataElement.valueType">
+                        [mandatory]="mandatory"
+                        [valueType]="programStageDataElement.valueType">
       </text-input-field>
     </div>
-    <div *ngIf="numericalInputField.indexOf(programStageDataElement.dataElement.valueType) > -1">
+
+    <div *ngIf="numericalInputField.indexOf(programStageDataElement.valueType) > -1">
       <numerical-input-field (onChange)="updateValue($event)"
-                             [dataElementId]="programStageDataElement.dataElement.id"
-                             [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                             [dataElementId]="programStageDataElement.id"
+                             [categoryOptionComboId]="'programStageDataElement'"
                              [data]="data"
-                             [valueType]="programStageDataElement.dataElement.valueType">
+                             [mandatory]="mandatory"
+                             [valueType]="programStageDataElement.valueType">
       </numerical-input-field>
     </div>
 
-    <div *ngIf="programStageDataElement.dataElement.valueType == 'DATE'">
+    <div *ngIf="programStageDataElement.valueType == 'DATE'">
       <date-input-field (onChange)="updateValue($event)"
-                        [dataElementId]="programStageDataElement.dataElement.id"
-                        [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                        [dataElementId]="programStageDataElement.id"
+                        [categoryOptionComboId]="'programStageDataElement'"
+                        [mandatory]="mandatory"
                         [data]="data">
       </date-input-field>
     </div>
-    <div *ngIf="programStageDataElement.dataElement.valueType == 'TRUE_ONLY'">
+    <div *ngIf="programStageDataElement.valueType == 'TRUE_ONLY'">
       <true-only-input-field (onChange)="updateValue($event)"
-                             [dataElementId]="programStageDataElement.dataElement.id"
-                             [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                             [dataElementId]="programStageDataElement.id"
+                             [categoryOptionComboId]="'programStageDataElement'"
+                             [mandatory]="mandatory"
                              [data]="data">
       </true-only-input-field>
     </div>
-    <div *ngIf="programStageDataElement.dataElement.valueType == 'BOOLEAN'">
+    <div *ngIf="programStageDataElement.valueType == 'BOOLEAN'">
       <boolean-input-field (onChange)="updateValue($event)"
-                           [dataElementId]="programStageDataElement.dataElement.id"
-                           [categoryOptionComboId]="'programStageDataElement.dataElement'"
+                           [dataElementId]="programStageDataElement.id"
+                           [categoryOptionComboId]="'programStageDataElement'"
+                           [mandatory]="mandatory"
                            [data]="data">
       </boolean-input-field>
     </div>
 
-    <div *ngIf="programStageDataElement.dataElement.valueType == 'GENDER'">
-      <gender-input-field (onChange)="updateValue($event)"
-                           [dataElementId]="programStageDataElement.dataElement.id"
-                           [categoryOptionComboId]="'programStageDataElement.dataElement'"
-                           [data]="data">
-      </gender-input-field>
-    </div>
 
-    <!--<div *ngIf="programStageDataElement.dataElement.valueType == 'NUMBER'">-->
-      <!--<numerical-input-field (onChange)="updateValue($event)"-->
-                           <!--[dataElementId]="programStageDataElement.dataElement.id"-->
-                           <!--[categoryOptionComboId]="'programStageDataElement'"-->
-                           <!--[data]="data">-->
-      <!--</numerical-input-field>-->
-    <!--</div>-->
-
-    <div *ngIf="supportValueTypes.indexOf(programStageDataElement.dataElement.valueType) == -1">
+    <div *ngIf="supportValueTypes.indexOf(programStageDataElement.valueType) == -1">
       <div padding>
-        Currently '{{ programStageDataElement.dataElement.valueType.toLocaleLowerCase().replace('/_/g',' ')}}' as value type is not supported
+        Currently '{{ programStageDataElement.valueType.toLocaleLowerCase().replace('/_/g',' ')}}' as value type is not supported
       </div>
     </div>
   </div>

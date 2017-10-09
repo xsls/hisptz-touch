@@ -50,14 +50,32 @@
 
       <div *ngIf="eventDate">
 
+
       <div *ngFor="let programStages of programStage" >
+
+        <div *ngIf="programStages.programStageSections.length == 0">
         <div *ngFor="let stageLevel of programStages.programStageDataElements" >
-          <event-capture-form-inputs [programStageDataElement]="stageLevel"
+          <event-capture-form-inputs [programStageDataElement]="stageLevel.dataElement"
                                  [currentUser]="currentUser"
                                  [data]="dataObject"
                                  [mandatory]="stageLevel.compulsory"
                                  (onChange)="updateEventData($event)"></event-capture-form-inputs>
         </div>
+        </div>
+
+
+        <div *ngIf="programStages.programStageSections.length > 0" >
+          <div *ngFor="let sectionLevel of programStages.programStageSections" >
+            <div *ngFor="let stageDataElement of sectionLevel.dataElements" >
+            <event-capture-form-inputs [programStageDataElement]="stageDataElement"
+                                       [currentUser]="currentUser"
+                                       [data]="dataObject"
+                                       [mandatory]="false"
+                                       (onChange)="updateEventData($event)"></event-capture-form-inputs>
+            </div>
+          </div>
+        </div>
+
       </div>
 
 
@@ -85,7 +103,7 @@
       <!-- saving and cancel button for event capture form -->
       <ion-row>
         <ion-col>
-          <button color="primary" round ion-button full (tap)="registerEvent()">
+          <button color="primary" round ion-button full [disabled]="!fieldChecker && hasCompulsory" (tap)="registerEvent()">
             Save
           </button>
         </ion-col>

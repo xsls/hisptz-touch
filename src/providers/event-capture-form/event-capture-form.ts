@@ -110,8 +110,10 @@ export class EventCaptureFormProvider {
     let stageSectionIds = [];
     let dataElementIds = [];
     let newStageData = [];
+    let secDataElement = [];
     let stageSectionMapper = {};
     let dataElementMapper = {};
+    let sectionDataElementMapper = {};
      return new Promise((resolve, reject) =>  {
       this.programsProvider.getProgramsStages(programId,currentUser).then((programsStages:any)=>{
         programsStages.forEach((programsStage:any)=>{
@@ -126,10 +128,33 @@ export class EventCaptureFormProvider {
           this.programsProvider.getProgramStageSectionsByIdsForEvents(stageSectionIds, currentUser).then((stageSectionData:any)=>{
             dataElements.forEach((dataElement : any)=>{
               dataElementMapper[dataElement.id] = dataElement;
-            });
+            // });
             stageSectionData.forEach((stageSection:any)=>{
-              stageSectionMapper[stageSection.id] = stageSection;
+              stageSection.dataElements.forEach((sectionDataElement:any)=>{
+
+                if(sectionDataElement.id == dataElement.id){
+                  sectionDataElementMapper[sectionDataElement.id] = dataElementMapper[sectionDataElement.id];
+                   secDataElement.push(sectionDataElementMapper[sectionDataElement.id])
+                 // sectionDataElement = sectionDataElementMapper[sectionDataElement.id];
+
+                    //alert("Section_Daata :"+JSON.stringify(secDataElement))
+                }
+
+                // sectionDataElementMapper[sectionDataElement.id] =
+                //alert("Section_Daata :"+JSON.stringify(sectionDataElement.id))
+
+                //stageSectionMapper[stageSection.id] = stageSection;
+              })
+
+              if(stageSection.dataElements.length == secDataElement.length ){
+                stageSection.dataElements = secDataElement;
+                stageSectionMapper[stageSection.id] = stageSection;
+              }
+
             });
+          });
+
+
             programsStages.forEach((programsStage:any)=>{
               programsStage.programStageDataElements.forEach((programStageDataElement)=>{
                 let dataElementId = programStageDataElement.dataElement.id;
@@ -138,11 +163,15 @@ export class EventCaptureFormProvider {
                 }
               });
             });
+            // alert("Section_Daata :"+JSON.stringify(stageSectionData))
             programsStages.forEach((programStage:any)=>{
               programStage.programStageSections.forEach((stageSectionId:any)=>{
                 newStageData.push(stageSectionMapper[stageSectionId.id]);
+                // alert("Section_Data :"+JSON.stringify(newStageData))
               });
               programStage.programStageSections = newStageData;
+              programStage.programStageSections
+
             });
             resolve(programsStages);
           });

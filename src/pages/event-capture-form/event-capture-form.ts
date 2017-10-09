@@ -45,10 +45,13 @@ export class EventCaptureForm implements OnInit{
 
   loaded:boolean = false;
   programRules:any;
-  programRulesVariables:any;
   programStage:any;
   eventDate:any;
   status:any;
+  mandatoryChecker:any = {};
+  mandatoryConfirmer:any = {};
+  fieldChecker:boolean = false;
+  hasCompulsory:boolean = false;
 
   //pagination controller
   public currentPage : number ;
@@ -76,29 +79,52 @@ export class EventCaptureForm implements OnInit{
       this.currentProgram = this.programsProvider.lastSelectedProgram;
       this.currentOrgUnit = this.organisationUnitProvider.lastSelectedOrgUnit;
       this.loadProgramMetadata();
+
     });
+
+
   }
 
   ionViewDidLoad() {
   }
 
   loadProgramMetadata(){
+
+
     this.eventCompleteness = false;
     this.loadingMessages = [];
     this.setLoadingMessages("Loading program metadata");
     this.loaded = false;
 
     this.event = {
+      event: dhis2.util.uid(),
       program : this.currentProgram.id,
-      programStage:'',
+      programStage: "",
       orgUnit : this.currentOrgUnit.id,
-      status : "ACTIVE",
+      orgUnitName : this.currentOrgUnit.name,
+      status : "",
       eventDate : "",
-      dataValues : []
+      completeDate: "",
+      attributeCategoryOptions: "",
+      attributeOptionCombo: "",
+      dataValues : [],
+      notes: [],
+      syncStatus: ""
+
     };
 
     this.eventCaptureFormProvider.getProgramStages(this.currentProgram.id, this.currentUser).then((programStages:any)=>{
        this.programStage = programStages;
+      programStages.forEach((progStage:any)=>{
+        progStage.programStageDataElements.forEach((sectionInfo:any)=>{
+          if(sectionInfo.compulsory){
+
+            this.hasCompulsory = true;
+            this.mandatoryChecker[sectionInfo.dataElement.id] = sectionInfo.dataElement.id;
+          }
+
+        })
+      })
     })
   }
 
@@ -129,11 +155,23 @@ export class EventCaptureForm implements OnInit{
     let id = updateDataValue.id.split("-")[0];
     this.dataElementValueObject[id] = updateDataValue.value;
     this.dataObject[updateDataValue.id] = updateDataValue;
+
+    if(updateDataValue.id.split("-")[0] == this.mandatoryChecker[updateDataValue.id.split("-")[0]]){
+
+       this.mandatoryConfirmer[updateDataValue.id.split("-")[0]] = updateDataValue;
+
+      if(Object.keys(this.mandatoryConfirmer).length >= Object.keys(this.mandatoryChecker).length ){
+        this.fieldChecker = true;
+      }
+
+    }
+
   }
 
 
   registerEvent(){
 
+    let eventfomart = [];
     let dataElementInfo = [];
     Object.keys(this.dataElementValueObject).forEach(key=>{
       dataElementInfo.push({
@@ -141,32 +179,46 @@ export class EventCaptureForm implements OnInit{
       })
     });
 
-    this.event = {
-      event: dhis2.util.uid(),
-      program : this.currentProgram.id,
-      programStage:'',
-      orgUnit : this.currentOrgUnit.id,
-      orgUnitName : this.currentOrgUnit.name,
-      status : this.status,
-      eventDate : this.eventDate,
-      completeDate: "",
-      attributeCategoryOptions: this.entryFormParameter.selectedDataDimension.toString().replace(/,/g, ';'),
-      dataValues : dataElementInfo,
-      notes: this.eventComment,
-      syncStatus: "not-synced"
 
-    };
 
-    this.eventsProvider.saveEvent(this.event, this.currentUser).then(()=>{
-      this.eventCompleteness = true;
-      this.appProvider.setNormalNotification("Registered event has been successful saved");
-      this.navCtrl.pop();
-    },error=>{
-      this.eventCompleteness = true;
-      this.appProvider.setNormalNotification("Fail to save new event to local storage : " + JSON.stringify(error));
+    this.programsProvider.getProgramsStages(this.currentProgram.id, this.currentUser).then((programStages:any)=> {
+      this.event = {
+        event: dhis2.util.uid(),
+        program: this.currentProgram.id,
+        programStage: programStages[0].id.split("-")[1],
+        orgUnit: this.currentOrgUnit.id,
+        orgUnitName: this.currentOrgUnit.name,
+        status: this.status,
+        eventDate: this.eventDate,
+        completeDate: "",
+        attributeCategoryOptions: this.entryFormParameter.attribCos,
+        attributeOptionCombo: this.entryFormParameter.attibCc,
+        dataValues: dataElementInfo,
+        notes: this.eventComment,
+        syncStatus: "new event"
+
+      };
+
+      eventfomart.push(this.event);
+
+
+      this.eventsProvider.uploadEventsToServer(this.event, this.currentUser).then((response: any) => {
+
+      this.eventsProvider.saveEvent(this.event, this.currentUser).then(() => {
+        this.eventCompleteness = true;
+        this.appProvider.setNormalNotification("Registered event has been successful saved to local storage");
+        this.navCtrl.pop();
+      }, error => {
+        this.eventCompleteness = true;
+        this.appProvider.setTopNotification("Fail to save new event to local storage : " + JSON.stringify(error));
+      });
+
+    },error => {
+        this.eventCompleteness = true;
+        this.appProvider.setTopNotification("Fail to save new event to server, will be stored to storage");
+      });
+
     });
-
-
   }
 
 

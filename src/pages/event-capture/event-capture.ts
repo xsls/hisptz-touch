@@ -274,6 +274,7 @@ export class EventCapturePage implements OnInit {
     this.usedDataElements = [];
     let currentEventsProgramsStage = [];
 
+    this.getDataDimensions();
     this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
       let eventDataValues: any;
 
@@ -412,6 +413,8 @@ export class EventCapturePage implements OnInit {
   goToEventRegister(fab: FabContainer){
     fab.close();
     let params = {
+      attribCos:this.attribCos,
+      attribCc: this.attibCc,
       selectedDataDimension : this.getDataDimensions(),
       event : ""
     };

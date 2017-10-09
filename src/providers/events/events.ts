@@ -334,39 +334,49 @@ export class EventsProvider {
 
 
 
-  uploadEventsToServer(events,currentUser){
+  uploadEventsToServer(event,currentUser){
+    let modifiedEvent = [];
     return new Promise((resolve, reject)=>{
-      events.forEach((event:any)=> {
+      // events.forEach((event:any)=> {
         if(event["syncStatus"] == "new event"){
           //delete event id for new event
           let eventTobUploaded = event;
           let eventToUpload = this.formatEventForUpload(eventTobUploaded);
-          let url = "/api/25/events";
+          // let url = "/api/25/events/"+JSON.stringify(eventToUpload.json);
+          let url = "/api/25/events/";
           console.log(JSON.stringify(eventToUpload));
-          this.httpClient.post(url,eventToUpload,currentUser).then(response=>{
+
+          modifiedEvent.push(eventTobUploaded)
+
+
+          this.httpClient.post(url ,eventToUpload.json,currentUser).then(response=>{
             //response = response.json();
             console.log(JSON.stringify(response));
+            //alert("Succes 1 :"+JSON.stringify(response))
+
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
             });
           },error=>{
-            console.log("error on post : " + JSON.stringify(error.json()));
+            //alert("error 1 :"+JSON.stringify(error))
+            console.log("error on post : " + JSON.stringify(error));
           })
         }else{
           let eventTobUploaded = event;
           let eventToUpload = this.formatEventForUpload(eventTobUploaded);
           let url = "/api/25/events/"+eventToUpload.event;
-          this.httpClient.put(url,eventToUpload,currentUser).then(response=>{
+          this.httpClient.put(url,JSON.stringify(eventToUpload) ,currentUser).then(response=>{
             // response = JSON.parse(response);
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
 
             });
           },error=>{
+            //alert("error 2 :"+JSON.stringify(error))
             console.log("error on put : " + JSON.stringify(error.json()));
           })
         }
-      });
+      // });
       //
       resolve();
     });

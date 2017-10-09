@@ -34,7 +34,7 @@ export class EventCaptureFormInputComponent implements OnInit{
     this.supportValueTypes = ['BOOLEAN','TRUE_ONLY','DATE','TEXT','LONG_TEXT','INTEGER_NEGATIVE','INTEGER_POSITIVE','INTEGER','NUMBER','INTEGER_ZERO_OR_POSITIVE'];
 
     if(this.programStageDataElement && this.programStageDataElement.id){
-      this.fieldLabelKey = this.programStageDataElement.dataElement.name;
+      this.fieldLabelKey = this.programStageDataElement.name;
       this.formLayout = "listLayout";
 
       this.settingProvider.getSettingsForTheApp(this.currentUser).then((appSettings : any)=>{
@@ -54,12 +54,12 @@ export class EventCaptureFormInputComponent implements OnInit{
   showTooltips(){
     let title = this.fieldLabelKey;
     let subTitle = "";
-    if(this.programStageDataElement.dataElement.description){
+    if(this.programStageDataElement.description){
       title += ". Description : " + this.programStageDataElement.description ;
     }
-    subTitle += "Value Type : " +this.programStageDataElement.dataElement.valueType.toLocaleLowerCase().replace(/_/g," ");
-    if(this.programStageDataElement.dataElement.optionSet){
-      title += ". It has " +this.programStageDataElement.dataElement.optionSet.options.length + " options to select.";
+    subTitle += "Value Type : " +this.programStageDataElement.valueType.toLocaleLowerCase().replace(/_/g," ");
+    if(this.programStageDataElement.optionSet){
+      title += ". It has " +this.programStageDataElement.optionSet.options.length + " options to select.";
     }
     let actionSheet = this.actionSheetCtrl.create({
       title: title,subTitle:subTitle
