@@ -181,8 +181,6 @@ export class EventCaptureForm implements OnInit{
       })
     });
 
-
-
     this.programsProvider.getProgramsStages(this.currentProgram.id, this.currentUser).then((programStages:any)=> {
       // this.event = {
       //   event: dhis2.util.uid(),

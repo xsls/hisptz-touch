@@ -39,7 +39,7 @@
       <ion-item>
         <ion-datetime doneText="Update" displayFormat="YYYY-MM-DD" pickerFormat="YYYY MM DD" [(ngModel)]="eventDate"></ion-datetime>
       </ion-item>
-      <button color="primary" ion-button round full (tap)="cancel()" *ngIf="event.eventDate =='' ">
+      <button color="primary" ion-button round full (tap)="cancel()" *ngIf="!eventDate">
         cancel
       </button>
 

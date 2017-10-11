@@ -9,6 +9,7 @@ import {SqlLiteProvider} from "../../providers/sql-lite/sql-lite";
 import {EventsProvider} from "../../providers/events/events";
 import {DataElementsProvider} from "../../providers/data-elements/data-elements";
 import {EventCaptureFormProvider} from "../../providers/event-capture-form/event-capture-form";
+import {NetworkAvailabilityProvider} from "../../providers/network-availability/network-availability";
 
 /**
  * Generated class for the EventCapturePage page.
@@ -70,7 +71,7 @@ export class EventCapturePage implements OnInit {
 
   constructor(private navCtrl: NavController, private userProvider: UserProvider, private modalCtrl: ModalController,
               private organisationUnitsProvider: OrganisationUnitsProvider, private programsProvider: ProgramsProvider, private appProvider: AppProvider,
-              private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider) {
+              private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider, private networkProvider:NetworkAvailabilityProvider) {
   }
 
   ngOnInit() {
@@ -109,6 +110,12 @@ export class EventCapturePage implements OnInit {
       this.loadingMessage = "";
       this.appProvider.setNormalNotification("Fail to load user information");
     });
+  }
+
+  ionViewDidEnter(){
+    if(this.isAllParameterSelected()){
+      this.loadEventsToDisplay()
+    }
   }
 
   loadingPrograms() {
@@ -278,57 +285,57 @@ export class EventCapturePage implements OnInit {
     this.usedDataElements = [];
     let currentEventsProgramsStage = [];
 
+    this.network = this.networkProvider.getNetWorkStatus();
     if (this.isAllParameterSelected()) {
 
-    this.getDataDimensions();
-    this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
-      let eventDataValues: any;
+      if (!this.network.isAvailable) {
+        this.loadEventsFromOfflineStorage();
+      } else {
 
-      eventsData.events.forEach((event: any) => {
-        currentEventsProgramsStage.push(event.programStage)
-
-      })
-
-      if (eventsData.events.length > 0) {
-        this.showEmptyList = false;
-
-        this.eventsData = eventsData.events;
-
-        this.eventsData.forEach((eventInfo: any) => {
-          eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
-          eventInfo["programName"] = this.selectedProgram.name;
-
-          eventDataValues = eventInfo.dataValues;
+      this.getDataDimensions();
+      this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
 
 
-          eventDataValues.forEach((dataRow: any) => {
+        eventsData.events.forEach((event: any) => {
+          currentEventsProgramsStage.push(event.programStage)
 
-            this.usedDataElements.push(dataRow.dataElement);
+        })
+
+        if (eventsData.events.length > 0) {
+          this.showEmptyList = false;
+
+          // this.eventsData = eventsData.events;
+
+          eventsData.events.forEach((eventInfo: any) => {
+            eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
+            eventInfo["programName"] = this.selectedProgram.name;
+
+
 
           });
 
 
-        });
+           alert("save. event :"+JSON.stringify(eventsData))
+          this.eventProvider.savingEventsFromServer(eventsData, this.currentUser).then((response: any) => {
+            // alert("save event :"+JSON.stringify(response))
+            this.loadEventsFromOfflineStorage();
+          })
+          this.loadEvents();
 
 
-        // alert("save event :"+JSON.stringify(eventsData))
-        this.eventProvider.savingEventsFromServer(eventsData,this.currentUser).then((response:any)=>{
-          // alert("save event :"+JSON.stringify(response))
-          // this.loadEventsFromOfflineStorage();
-        })
-        this.loadEvents();
+        } else {
+          this.loadingData = false;
+          this.loadEventsFromOfflineStorage();
+          this.showEmptyList = true;
+          this.tableFormat = false;
+          this.appProvider.setNormalNotification("There are no online events to display on " + this.selectedProgram.name);
+        }
 
-
-      } else {
-        this.loadingData = false;
-        this.showEmptyList = true;
-        this.tableFormat = false;
-        this.appProvider.setNormalNotification("There are no events to display on " + this.selectedProgram.name);
-      }
-
-      this.currentEvents = eventsData.events;
+        //this.currentEvents = eventsData.events;
 
       });
+
+    }
 
     }
 
@@ -336,7 +343,73 @@ export class EventCapturePage implements OnInit {
 
 
 
+  /**
+   * loading all events based on selected option from offline storage
+   */
+  loadEventsFromOfflineStorage(){
+    let eventDataValues: any;
+    //this.setNotificationToasterMessage("Checking offline events");
+    // this.currentSelectionStatus.isEventsLoadedFromServer = false;
+    // this.currentSelectionStatus.eventsLoadingStatus = "Checking available offline events";
+    this.eventProvider.loadingEventsFromStorage(this.selectedOrgUnit,this.selectedProgram,this.currentUser).then((events:any)=>{
 
+      //alert("saved events from DB :"+JSON.stringify(events))
+      //
+      let currentEvents = [];
+      if(this.selectedDataDimension.length > 0){
+        let attributeCategoryOptions = this.selectedDataDimension.toString();
+        attributeCategoryOptions = attributeCategoryOptions.replace(/,/g, ';');
+        events.forEach((event : any)=>{
+          if(event.attributeCategoryOptions == attributeCategoryOptions){
+            currentEvents.push(event);
+          }
+        });
+      }else{
+        currentEvents = events;
+      }
+
+
+      //alert("saved events from DB :"+JSON.stringify(currentEvents))
+
+      this.eventsData = currentEvents;
+
+      this.eventsData.forEach((eventInfo: any) => {
+        eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
+        eventInfo["programName"] = this.selectedProgram.name;
+
+        eventDataValues = eventInfo.dataValues;
+
+
+        eventDataValues.forEach((dataRow: any) => {
+
+          this.usedDataElements.push(dataRow.dataElement);
+
+          //alert("used Dataaelements:"+JSON.stringify(this.usedDataElements))
+
+        });
+
+
+      });
+
+
+
+
+      // if(currentEvents.length > 0){
+      //   this.hasEvents = true;
+      // }else{
+      //   this.hasEvents = false;
+      // }
+
+      this.currentEvents = currentEvents;
+      this.loadEvents();
+      // this.loadEventListAsTable();
+      //this.loadEventListAsListOfCards();
+      //this.currentSelectionStatus.isEventsLoadedFromServer = true;
+    },error=>{
+      this.loadingData = false;
+      this.appProvider.setTopNotification("Fail to load events from offline storage");
+    });
+  }
 
 
 
