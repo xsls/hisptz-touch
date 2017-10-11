@@ -10,6 +10,7 @@ import {EventsProvider} from "../../providers/events/events";
 import {DataElementsProvider} from "../../providers/data-elements/data-elements";
 import {EventCaptureFormProvider} from "../../providers/event-capture-form/event-capture-form";
 import {NetworkAvailabilityProvider} from "../../providers/network-availability/network-availability";
+import {error} from "util";
 
 /**
  * Generated class for the EventCapturePage page.
@@ -315,7 +316,7 @@ export class EventCapturePage implements OnInit {
           });
 
 
-           alert("save. event :"+JSON.stringify(eventsData))
+           //alert("save. event :"+JSON.stringify(eventsData))
           this.eventProvider.savingEventsFromServer(eventsData, this.currentUser).then((response: any) => {
             // alert("save event :"+JSON.stringify(response))
             this.loadEventsFromOfflineStorage();
@@ -333,6 +334,8 @@ export class EventCapturePage implements OnInit {
 
         //this.currentEvents = eventsData.events;
 
+      }, error=>{
+        this.loadEventsFromOfflineStorage();
       });
 
     }

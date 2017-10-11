@@ -46,7 +46,6 @@ export class EventView implements OnInit{
       this.currentProgram = this.programsProvider.lastSelectedProgram;
       this.currentOrgUnit = this.orgUnitProvider.lastSelectedOrgUnit;
       this.params = this.NavParams.get("params");
-      alert("ProgDaaata is: "+JSON.stringify(this.params.event))
       this.loadProgramMetadata();
     });
 
@@ -82,20 +81,32 @@ export class EventView implements OnInit{
 
       programsStages.forEach((programsStage:any)=> {
         programsStage.programStageDataElements.forEach((programStageDataElement) => {
+
+
           dataElementIds.push(programStageDataElement.dataElement.id);
-          //alert("programStageDataElement is: "+JSON.stringify(programStageDataElement))
+
+
+          this.dataElementProvider.getDataElementsByName(programStageDataElement.dataElement.id, this.currentUser).then((dataElementInfo:any)=>{
+            //alert("programStageDataElement is: "+JSON.stringify(dataElementInfo))
+            dataElementInfo.forEach((element:any)=>{
+              this.dataElementMapper[element.id] = element;
+            })
+
+          })
+
+
         })
 
       });
 
     });
     this.dataElementProvider.getBulkDataElementsByName(dataElementIds,this.currentUser).then((programStageDataElements:any)=>{
-      // alert("dataElement is: "+JSON.stringify(programStageDataElements))
+       //alert("dataElement.. is: "+JSON.stringify(programStageDataElements))
     // this.programsProvider.getProgramsStages(programStageDataElementsIds,this.currentUser).then((programStageDataElements:any)=>{
       programStageDataElements.forEach((programStageDataElement)=>{
         // this.dataElementMapper[programStageDataElement.dataElement.id] = programStageDataElement.dataElement;
-        this.dataElementMapper[programStageDataElement.id] = programStageDataElement;
-        // alert("dataElement is: "+JSON.stringify(programStageDataElement))
+        // this.dataElementMapper[programStageDataElement.id] = programStageDataElement;
+         //alert("dataElement is: "+JSON.stringify(programStageDataElement))
       });
       this.loadingEvent(this.params.event);
     },error=>{
@@ -113,8 +124,8 @@ export class EventView implements OnInit{
   loadingEvent(eventId){
     this.setLoadingMessages("Loading event");
     let eventTableId = this.currentProgram.id+"-"+this.currentOrgUnit.id+"-"+eventId;
-    this.eventProvider.loadingEventByIdFromStorage(eventTableId,this.currentUser).then((event:any)=>{
-      alert("fetched event : "+JSON.stringify(event))
+    this.eventProvider.loadingEventByIdFromStorage(eventId,this.currentUser).then((event:any)=>{
+
       this.event = event;
       this.loadingData = false;
     },error=>{

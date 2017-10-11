@@ -54,8 +54,8 @@
           <p><b>Comments &nbsp;&nbsp;:&nbsp;&nbsp;</b>{{ event.notes }}</p>
         </div>
         <p><b>Status</b>&nbsp;&nbsp;:&nbsp;&nbsp;
-          <span *ngIf="event.syncStatus == 'new event' || event.syncStatus == 'not synced'">Offline</span>
-          <span *ngIf="!(event.syncStatus == 'new event' || event.syncStatus == 'not synced')">Online</span>
+          <span *ngIf="event.syncStatus == 'new event' || event.syncStatus == 'not-synced'">Offline</span>
+          <span *ngIf="!(event.syncStatus == 'new event' || event.syncStatus == 'not-synced')">Online</span>
         </p>
       </div>
     </div>
