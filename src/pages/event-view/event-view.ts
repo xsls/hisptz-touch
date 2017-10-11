@@ -87,7 +87,6 @@ export class EventView implements OnInit{
 
 
           this.dataElementProvider.getDataElementsByName(programStageDataElement.dataElement.id, this.currentUser).then((dataElementInfo:any)=>{
-            //alert("programStageDataElement is: "+JSON.stringify(dataElementInfo))
             dataElementInfo.forEach((element:any)=>{
               this.dataElementMapper[element.id] = element;
             })
@@ -100,19 +99,8 @@ export class EventView implements OnInit{
       });
 
     });
-    this.dataElementProvider.getBulkDataElementsByName(dataElementIds,this.currentUser).then((programStageDataElements:any)=>{
-       //alert("dataElement.. is: "+JSON.stringify(programStageDataElements))
-    // this.programsProvider.getProgramsStages(programStageDataElementsIds,this.currentUser).then((programStageDataElements:any)=>{
-      programStageDataElements.forEach((programStageDataElement)=>{
-        // this.dataElementMapper[programStageDataElement.dataElement.id] = programStageDataElement.dataElement;
-        // this.dataElementMapper[programStageDataElement.id] = programStageDataElement;
-         //alert("dataElement is: "+JSON.stringify(programStageDataElement))
-      });
-      this.loadingEvent(this.params.event);
-    },error=>{
-      this.loadingData = false;
-      this.appProvider.setNormalNotification("Fail. to load entry fields details : " + JSON.stringify(error));
-    });
+
+    this.loadingEvent(this.params.event);
   }
 
   /**

@@ -3,7 +3,7 @@
         <div *ngIf="eventSyncObjects[eventId] && eventSyncObjects[eventId].name != ''" >
           <!--<ion-card>-->
           <div class="item-card">
-            <ion-item class="content">
+            <ion-item class="item">
               <div (tap)="viewMoreDetailsOnEntryForm(eventId)" class="whiteBackground">
                   <p >
                     <b>Form : </b>{{eventSyncObjects[eventId].name}}<br>
