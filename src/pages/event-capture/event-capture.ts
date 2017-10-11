@@ -168,6 +168,7 @@ export class EventCapturePage implements OnInit {
       });
       modal.onDidDismiss((selectedProgram: any) => {
         if (selectedProgram && selectedProgram.id) {
+           this.showEmptyList = false;
           this.selectedProgram = selectedProgram;
           this.programsProvider.setLastSelectedProgram(selectedProgram);
           this.updateEventCaptureSelections();
@@ -176,12 +177,14 @@ export class EventCapturePage implements OnInit {
         }
       });
       modal.present();
+      this.showEmptyList = false;
     } else {
       this.appProvider.setNormalNotification("There are no program to select on " + this.selectedOrgUnit.name);
     }
   }
 
   openDataDimensionSelection(category){
+    // this.showEmptyList = false;
     if(category.categoryOptions && category.categoryOptions && category.categoryOptions.length > 0){
       let currentIndex = this.programCategoryCombo.categories.indexOf(category);
       let modal = this.modalCtrl.create('DataDimensionSelectionPage', {
@@ -193,6 +196,7 @@ export class EventCapturePage implements OnInit {
         if(selectedDataDimension && selectedDataDimension.id ){
           this.selectedDataDimension[currentIndex] = selectedDataDimension;
           this.updateEventCaptureSelections();
+          this.loadEventsToDisplay();
         }
       });
       modal.present();
@@ -269,10 +273,12 @@ export class EventCapturePage implements OnInit {
 
   loadEventsToDisplay() {
     this.loadingData = true;
-    this.showEmptyList = false;
+    // this.showEmptyList = false;
     this.loadingMessage = "Loading current events from server based on selected inputs";
     this.usedDataElements = [];
     let currentEventsProgramsStage = [];
+
+    if (this.isAllParameterSelected()) {
 
     this.getDataDimensions();
     this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
@@ -289,7 +295,11 @@ export class EventCapturePage implements OnInit {
         this.eventsData = eventsData.events;
 
         this.eventsData.forEach((eventInfo: any) => {
+          eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
+          eventInfo["programName"] = this.selectedProgram.name;
+
           eventDataValues = eventInfo.dataValues;
+
 
           eventDataValues.forEach((dataRow: any) => {
 
@@ -298,11 +308,16 @@ export class EventCapturePage implements OnInit {
           });
 
 
-
         });
 
 
+        // alert("save event :"+JSON.stringify(eventsData))
+        this.eventProvider.savingEventsFromServer(eventsData,this.currentUser).then((response:any)=>{
+          // alert("save event :"+JSON.stringify(response))
+          // this.loadEventsFromOfflineStorage();
+        })
         this.loadEvents();
+
 
       } else {
         this.loadingData = false;
@@ -311,17 +326,25 @@ export class EventCapturePage implements OnInit {
         this.appProvider.setNormalNotification("There are no events to display on " + this.selectedProgram.name);
       }
 
-
       this.currentEvents = eventsData.events;
 
-    })
+      });
+
+    }
 
   }
 
 
+
+
+
+
+
+
+
   loadEvents() {
     this.loadingData = true;
-    this.showEmptyList = false;
+     this.showEmptyList = false;
     this.loadingMessage = "Preparing events view display";
     this.table = {
       header: [], rows: []
@@ -362,8 +385,8 @@ export class EventCapturePage implements OnInit {
 
   loadEventListAsTable(){
     this.loadingData = true;
-    this.loadingMessage = "preparing data";
     this.showEmptyList = false;
+    this.loadingMessage = "preparing data";
     this.eventProvider.getEventListInTableFormat(this.currentEvents,this.currentAvailableEvents).then((table:any)=>{
       this.loadingData = false;
       this.showEmptyList = false;
@@ -381,7 +404,6 @@ export class EventCapturePage implements OnInit {
         dataElementMapper: this.currentAvailableOnEvents
       });
       modal.onDidDismiss((dataElementToDisplayResponse:any)=>{
-
         if(dataElementToDisplayResponse){
           this.currentAvailableEvents = dataElementToDisplayResponse;
           this.loadEventListAsTable();
@@ -394,20 +416,20 @@ export class EventCapturePage implements OnInit {
   }
 
 
-  // /**
-  //  * navigate to event
-  //  * @param event
-  //  */
-  // goToEventView(event){
-  //
-  //   let params = {
-  //     currentEvent: this.currentEvents,
-  //     event : event.event
-  //   };
-  //
-  //   //alert("Event is "+JSON.stringify(params))
-  //   this.navCtrl.push('EventView',{params:params});
-  // }
+  /**
+   * navigate to event
+   * @param event
+   */
+  goToEventView(event){
+
+    let params = {
+      currentEvent: this.currentEvents,
+      event : event.event
+    };
+
+    //alert("Event is "+JSON.stringify(params))
+    this.navCtrl.push('EventView',{params:params});
+  }
 
 
   goToEventRegister(fab: FabContainer){

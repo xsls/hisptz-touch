@@ -46,7 +46,7 @@ export class EventView implements OnInit{
       this.currentProgram = this.programsProvider.lastSelectedProgram;
       this.currentOrgUnit = this.orgUnitProvider.lastSelectedOrgUnit;
       this.params = this.NavParams.get("params");
-      //alert("ProgDaaata is: "+JSON.stringify(this.params))
+      alert("ProgDaaata is: "+JSON.stringify(this.params.event))
       this.loadProgramMetadata();
     });
 
@@ -89,8 +89,8 @@ export class EventView implements OnInit{
       });
 
     });
-    this.dataElementProvider.getDataElementsByIdsForEvents(dataElementIds,this.currentUser).then((programStageDataElements:any)=>{
-      alert("dataElement is: "+JSON.stringify(dataElementIds))
+    this.dataElementProvider.getBulkDataElementsByName(dataElementIds,this.currentUser).then((programStageDataElements:any)=>{
+      // alert("dataElement is: "+JSON.stringify(programStageDataElements))
     // this.programsProvider.getProgramsStages(programStageDataElementsIds,this.currentUser).then((programStageDataElements:any)=>{
       programStageDataElements.forEach((programStageDataElement)=>{
         // this.dataElementMapper[programStageDataElement.dataElement.id] = programStageDataElement.dataElement;
@@ -100,7 +100,7 @@ export class EventView implements OnInit{
       this.loadingEvent(this.params.event);
     },error=>{
       this.loadingData = false;
-      this.appProvider.setNormalNotification("Fail to load entry fields details : " + JSON.stringify(error));
+      this.appProvider.setNormalNotification("Fail. to load entry fields details : " + JSON.stringify(error));
     });
   }
 
@@ -114,6 +114,7 @@ export class EventView implements OnInit{
     this.setLoadingMessages("Loading event");
     let eventTableId = this.currentProgram.id+"-"+this.currentOrgUnit.id+"-"+eventId;
     this.eventProvider.loadingEventByIdFromStorage(eventTableId,this.currentUser).then((event:any)=>{
+      alert("fetched event : "+JSON.stringify(event))
       this.event = event;
       this.loadingData = false;
     },error=>{

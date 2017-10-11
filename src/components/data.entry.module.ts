@@ -11,12 +11,11 @@ import {TextInputFieldComponent} from "./text-input-field/text-input-field";
 import {TrueOnlyInputFieldComponent} from "./true-only-input-field/true-only-input-field";
 import {TrackedEntityInputsComponent} from "./tracked-entity-inputs/tracked-entity-inputs";
 import {EventCaptureFormInputComponent} from "./event-capture-form-inputs/event-capture-form-inputs";
-import {GenderInputFieldComponent} from "./gender-input-field/gender-input-field";
 
 @NgModule({
   declarations: [
     OrganisationUnitTreeComponent,InputContainerComponent,TrackedEntityInputsComponent,
-    BooleanInputFieldComponent,DateInputFieldComponent,NumericalInputFieldComponent, GenderInputFieldComponent,
+    BooleanInputFieldComponent,DateInputFieldComponent,NumericalInputFieldComponent,
     OptionSetInputFieldComponent,TextInputFieldComponent,TrueOnlyInputFieldComponent,EventCaptureFormInputComponent
   ],
   imports: [
@@ -24,7 +23,7 @@ import {GenderInputFieldComponent} from "./gender-input-field/gender-input-field
   ],
   exports: [
     OrganisationUnitTreeComponent,InputContainerComponent,TrackedEntityInputsComponent,
-    BooleanInputFieldComponent,DateInputFieldComponent,NumericalInputFieldComponent, GenderInputFieldComponent,
+    BooleanInputFieldComponent,DateInputFieldComponent,NumericalInputFieldComponent,
     OptionSetInputFieldComponent,TextInputFieldComponent,TrueOnlyInputFieldComponent,EventCaptureFormInputComponent
   ]
 })

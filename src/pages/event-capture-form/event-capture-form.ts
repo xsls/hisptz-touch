@@ -170,41 +170,67 @@ export class EventCaptureForm implements OnInit{
 
 
   registerEvent(){
-
+    let event ={};
+    let notes = [];
+    let today = ((new Date()).toISOString()).split('T')[0];
     let eventfomart = [];
     let dataElementInfo = [];
     Object.keys(this.dataElementValueObject).forEach(key=>{
       dataElementInfo.push({
-        value: this.dataElementValueObject[key] , dataElementId: key
+         dataElement: key , value: this.dataElementValueObject[key]
       })
     });
 
 
 
     this.programsProvider.getProgramsStages(this.currentProgram.id, this.currentUser).then((programStages:any)=> {
-      this.event = {
+      // this.event = {
+      //   event: dhis2.util.uid(),
+      //   program: this.currentProgram.id,
+      //   programStage: programStages[0].id.split("-")[1],
+      //   orgUnit: this.currentOrgUnit.id,
+      //   orgUnitName: this.currentOrgUnit.name,
+      //   status: this.status,
+      //   eventDate: this.eventDate,
+      //   completeDate: "",
+      //   attributeCategoryOptions: this.entryFormParameter.attribCos,
+      //   attributeOptionCombo: this.entryFormParameter.attibCc,
+      //   dataValues: dataElementInfo,
+      //   notes: this.eventComment,
+      //   syncStatus: "new event"
+      //
+      // };
+
+      notes.push(this.eventComment)
+
+      event ={
         event: dhis2.util.uid(),
         program: this.currentProgram.id,
+        programName: this.currentProgram.name,
         programStage: programStages[0].id.split("-")[1],
         orgUnit: this.currentOrgUnit.id,
         orgUnitName: this.currentOrgUnit.name,
         status: this.status,
         eventDate: this.eventDate,
-        completeDate: "",
+        completeDate: today,
         attributeCategoryOptions: this.entryFormParameter.attribCos,
-        attributeOptionCombo: this.entryFormParameter.attibCc,
         dataValues: dataElementInfo,
-        notes: this.eventComment,
-        syncStatus: "new event"
+        notes: notes,
+        syncStatus: "not-synced"
 
-      };
-
-      eventfomart.push(this.event);
+      }
 
 
-      this.eventsProvider.uploadEventsToServer(this.event, this.currentUser).then((response: any) => {
+      //alert("new Event :"+JSON.stringify(event))
 
-      this.eventsProvider.saveEvent(this.event, this.currentUser).then(() => {
+      //eventfomart.push(this.event);
+
+
+      // this.eventsProvider.uploadEventsToServer(event, this.currentUser).then((response: any) => {
+
+      this.eventsProvider.saveEvent(event, this.currentUser).then(() => {
+
+
         this.eventCompleteness = true;
         this.appProvider.setNormalNotification("Registered event has been successful saved to local storage");
         this.navCtrl.pop();
@@ -213,10 +239,10 @@ export class EventCaptureForm implements OnInit{
         this.appProvider.setTopNotification("Fail to save new event to local storage : " + JSON.stringify(error));
       });
 
-    },error => {
-        this.eventCompleteness = true;
-        this.appProvider.setTopNotification("Fail to save new event to server, will be stored to storage");
-      });
+    // },error => {
+    //     this.eventCompleteness = true;
+    //     this.appProvider.setTopNotification("Fail to save new event to server, will be stored to storage");
+    //   });
 
     });
   }

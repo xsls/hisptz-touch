@@ -160,7 +160,7 @@ export class EventsProvider {
    * @returns {Promise<T>}
    */
   loadingEventByIdFromStorage(eventTableId,currentUser){
-    let attribute = "id";
+    let attribute = "event";
     let attributeArray = [];
     attributeArray.push(eventTableId);
     return new Promise((resolve, reject)=>{
@@ -182,7 +182,7 @@ export class EventsProvider {
    * @param status
    * @returns {Promise<T>}
    */
-  getEventsFromStorageByStatus(currentUser,status){
+  getEventsFromStorageByStatus(status,currentUser){
     let attribute = "syncStatus";
     let attributeArray = [];
     attributeArray.push(status);
@@ -338,27 +338,29 @@ export class EventsProvider {
     let modifiedEvent = [];
     return new Promise((resolve, reject)=>{
       // events.forEach((event:any)=> {
-        if(event["syncStatus"] == "new event"){
+        if(event["syncStatus"] == "not-synced"){
           //delete event id for new event
           let eventTobUploaded = event;
           let eventToUpload = this.formatEventForUpload(eventTobUploaded);
           // let url = "/api/25/events/"+JSON.stringify(eventToUpload.json);
-          let url = "/api/25/events/";
+          let url = "/api/25/events";
           console.log(JSON.stringify(eventToUpload));
 
           modifiedEvent.push(eventTobUploaded)
 
+          alert("Parsed :"+ JSON.parse(eventToUpload))
 
-          this.httpClient.post(url ,eventToUpload.json,currentUser).then(response=>{
+          this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
+          // this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
             //response = response.json();
             console.log(JSON.stringify(response));
-            //alert("Succes 1 :"+JSON.stringify(response))
+            alert("Succes 1 :"+JSON.stringify(response))
 
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
             });
           },error=>{
-            //alert("error 1 :"+JSON.stringify(error))
+            alert("error 1 :"+JSON.stringify(error))
             console.log("error on post : " + JSON.stringify(error));
           })
         }else{
@@ -372,7 +374,7 @@ export class EventsProvider {
 
             });
           },error=>{
-            //alert("error 2 :"+JSON.stringify(error))
+            alert("error 2 :"+JSON.stringify(error))
             console.log("error on put : " + JSON.stringify(error.json()));
           })
         }
@@ -397,6 +399,29 @@ export class EventsProvider {
       })
     })
   }
+
+
+  deleteEventsByIds(eventIds, currentUser) {
+    let resource = "events"
+    let successCount = 0;
+    let failCount = 0;
+    return new Promise( (resolve, reject)=> {
+      for(let dataValueId of eventIds){
+        this.sqlLite.deleteFromTableByAttribute(resource,"event",dataValueId, currentUser.currentDatabase).then(()=> {
+          successCount = successCount + 1;
+          if((successCount + failCount) == eventIds.length){
+            resolve();
+          }
+        }, error=> {
+          failCount = failCount + 1;
+          if((successCount + failCount) == eventIds.length){
+            resolve();
+          }
+        });
+      }
+    });
+  }
+
 
 
 }
