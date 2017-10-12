@@ -45,26 +45,15 @@ export class EventSyncComponent implements OnInit{
         this.currentUser = user;
 
         if(this.dataSetIds && this.dataSetIds.length > 0){
-          //this.loadDataSetsByIds(this.dataSetIds,this.currentUser);
+          //this.loadDataSetsByIds(this.eventIds,this.currentUser);
         }else{
         }
       });
   }
 
-  // loadDataSetsByIds(dataSetIds,currentUser){
-  //   this.dataSetsProvider.getDataSetsByIds(dataSetIds,currentUser).then((dataSets : any)=>{
-  //     dataSets.forEach((dataSet :any)=>{
-  //       this.eventSyncObjects[dataSet.id].name = dataSet.name;
-  //     });
-  //
-  //   },error=>{
-  //
-  //   })
-  // }
 
 
-
-  dataSetDataDeleteConfirmation(eventProgram,eventId){
+  eventDeleteConfirmation(eventProgram, eventId){
     let alert = this.alertCtrl.create({
       title: 'Clear Data Confirmation',
       message: 'Are you want to clear all data on '+ eventProgram +' ?',
@@ -79,7 +68,7 @@ export class EventSyncComponent implements OnInit{
         {
           text: 'Clear',
           handler: () => {
-            this.deleteDataSetData(eventProgram,eventId);
+            this.deleteEventData(eventProgram,eventId);
           }
         }
       ]
@@ -87,12 +76,12 @@ export class EventSyncComponent implements OnInit{
     alert.present();
   }
 
-  deleteDataSetData(eventProgram,eventId){
+  deleteEventData(eventProgram, eventId){
     this.onDeleteDataSetData.emit({eventId : eventId, eventProgram:eventProgram});
 
   }
 
-  viewMoreDetailsOnEntryForm(eventId){
+  viewMoreDetailsOnEvent(eventId){
     this.navCtrl.push('DataElementSyncPage',{
       syncStatus : this.syncStatus,
       event: this.eventSyncObjects[eventId],
@@ -104,7 +93,7 @@ export class EventSyncComponent implements OnInit{
   }
 
 
-  syncSelectedDataSetData(selectedDataSet,eventProgram,eventId){
+  syncSelectedEventData(selectedDataSet, eventProgram, eventId){
     this.onSyncDataSetData.emit({dataValues: selectedDataSet,eventId : eventId , eventProgram:eventProgram});
 
   }

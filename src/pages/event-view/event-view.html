@@ -64,11 +64,17 @@
 
 </ion-content>
 
-<!--&lt;!&ndash;- menu as well as add new event as fab icon&ndash;&gt;-->
-<!--<div *ngIf="!loadingData && event" >-->
-  <!--<ion-fab bottom right >-->
-    <!--<button ion-fab (tap)="gotToEditEvent(event)" color="primary">-->
-      <!--<ion-icon name="md-create"></ion-icon>-->
-    <!--</button>-->
-  <!--</ion-fab>-->
-<!--</div>-->
+<!--- menu as well as add new event as fab icon-->
+<div *ngIf="!loadingData && event" >
+
+  <ion-fab bottom right #fab>
+    <button ion-fab><ion-icon name="md-more"  ></ion-icon></button>
+    <ion-fab-list side="top">
+      <button ion-fab color="primary" (tap)="confirmEventDelete(event,fab)" ><ion-icon name="trash"  ></ion-icon></button>
+      <button ion-fab color="primary" (tap)="gotToEditEvent(event,fab)" ><ion-icon name="md-create"  ></ion-icon></button>
+    </ion-fab-list>
+  </ion-fab>
+
+
+
+</div>

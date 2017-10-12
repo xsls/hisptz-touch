@@ -13,6 +13,7 @@ import {StandardReportProvider} from "../standard-report/standard-report";
 import {ProgramsProvider} from "../programs/programs";
 import {ProgramStageSectionsProvider} from "../program-stage-sections/program-stage-sections";
 import {DataValuesProvider} from "../data-values/data-values";
+import {EventsProvider} from "../events/events";
 
 /*
   Generated class for the SyncProvider provider.
@@ -24,7 +25,7 @@ import {DataValuesProvider} from "../data-values/data-values";
 export class SyncProvider {
 
   constructor(private sqLite: SqlLiteProvider,
-              private dataValuesProvider : DataValuesProvider,
+              private dataValuesProvider : DataValuesProvider, private eventsProvider: EventsProvider,
               private orgUnitsProvider: OrganisationUnitsProvider, private datasetsProvider: DataSetsProvider,
               private sectionProvider: SectionsProvider, private dataElementProvider: DataElementsProvider,
               private smsCommandsProvider: SmsCommandProvider, private indicatorProvider: IndicatorsProvider,
@@ -64,7 +65,24 @@ export class SyncProvider {
     return new Promise((resolve, reject) =>  {
       //@todo implementing events downloading
       if(!itemsToUpload || (itemsToUpload.length == 1 && itemsToUpload.indexOf("events") > -1)){
-        resolve(data);
+
+
+        itemsToUpload.forEach((item : string)=>{
+          if(item == "events"){
+            let preparedEvent = [];
+            promises.push(
+              this.eventsProvider.getEventsFromStorageByStatus(status,currentUser).then((events : Array<any>)=>{
+                events.forEach((eventData:any)=>{
+                  eventData = this.eventsProvider.formatEventForUpload(eventData);
+                  preparedEvent.push(eventData)
+                })
+                data[item] = preparedEvent;
+                resolve(data);
+              },error=>{})
+            )
+          }
+        });
+        // resolve(data);
       }else{
         itemsToUpload.forEach((item : string)=>{
           if(item == "dataValues"){
@@ -100,7 +118,8 @@ export class SyncProvider {
           if(item == "dataValues"){
             preparedData[item] = this.dataValuesProvider.getFormattedDataValueForUpload(data[item]);
           }else if(item == "events"){
-            preparedData[item] = [];
+            preparedData[item] = data[item];
+           // alert("to Events :"+JSON.stringify(preparedData))
           }
         });
         resolve(preparedData);
@@ -123,6 +142,14 @@ export class SyncProvider {
             },error=>{})
           )
         }else if(item == "events"){
+          // alert("formattedObject :"+JSON.stringify(formattedDataObject))
+          // alert("dataObject :"+JSON.stringify(dataObject))
+          promises.push(
+            this.eventsProvider.uploadEventsToServer(formattedDataObject[item],currentUser).then((importSummaries)=>{
+              response[item] = importSummaries;
+            },error=>{})
+          )
+
 
         }
       });

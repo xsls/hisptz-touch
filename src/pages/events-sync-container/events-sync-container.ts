@@ -27,13 +27,14 @@ export class EventsSyncContainerPage  implements OnInit{
   public eventSyncObjects : any = {};
   public isDataSetDataDeletionOnProgress : any = {};
   public syncProcess : any = {};
-  public dataSetIds : any = [];
+  public eventIds : any = [];
   public syncStatus : string = "";
   public headerLabel : string;
   public currentUser : any;
   idArray: any = {};
   dataSetIdList: any = [];
   valueHolder:any;
+  availableEvents:any;
   dataValuesStorage : any = { online : 0,offline : 0};
 
 
@@ -51,20 +52,22 @@ export class EventsSyncContainerPage  implements OnInit{
   }
 
   initiateData(){
+    let eventIds =[]
     this.headerLabel = "List of ";
     this.headerLabel += (this.navParams.get("syncStatus") == "synced")? "synced": "un synced ";
     this.headerLabel += " events";
     this.syncStatus = (this.navParams.get("syncStatus") == "synced")? "Synced" : "Not synced";
-
+    this.availableEvents = this.navParams.get("events");
 
     // this.valueHolder = this.navParams.get("events");
+    alert("EventsTotal :"+JSON.stringify(this.navParams.get("events")))
     this.navParams.get("events").forEach((event : any)=>{
-
+      // eventIds.push(event.programName);
       this.loadingMessages = "Grouping data by entry form";
       this.isDataSetDataDeletionOnProgress[event.event] = false;
       this.syncProcess[event.event] = false;
       if(!this.eventSyncObjects[event.event]){
-        this.dataSetIds.push(event.event);
+        this.eventIds.push(event.event);
 
         this.eventSyncObjects[event.event] = {
           id :event.event,
@@ -75,6 +78,8 @@ export class EventsSyncContainerPage  implements OnInit{
         };
       }
     });
+    // eventIds = Array.from(new Set(eventIds))
+    // alert("sorted Events Ids :"+JSON.stringify(eventIds))
     this.loading = false;
   }
 

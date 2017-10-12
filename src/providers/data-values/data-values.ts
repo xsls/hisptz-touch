@@ -93,6 +93,7 @@ export class DataValuesProvider {
     };
     return new Promise( (resolve, reject)=> {
       formattedDataValues.forEach((formattedDataValue:any, index:any)=> {
+
         this.httpClient.post('/api/25/dataValues?' + formattedDataValue, {}, currentUser).then(()=> {
           let syncedDataValue = dataValues[index];
           importSummaries.success ++;

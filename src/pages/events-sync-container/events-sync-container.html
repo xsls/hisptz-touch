@@ -13,7 +13,7 @@
 </ion-header>
 
 
-<ion-content class="data-set-sync-container">
+<ion-content class="event-sync-container">
   <div *ngIf="loading">
     <page-loading [loadingSize]="large" [loadingMessage] = "loadingMessages"></page-loading>
   </div>
@@ -21,7 +21,7 @@
     <event-sync
       [eventSyncObjects]="eventSyncObjects"
       [syncStatus]="syncStatus"
-      [dataSetIds]="dataSetIds"
+      [dataSetIds]="eventIds"
       [isDataSetDataDeletionOnProgress]="isDataSetDataDeletionOnProgress"
       [syncProcess]="syncProcess"
       (onDeleteDataSetData)="onDeleteDataSetData($event)"

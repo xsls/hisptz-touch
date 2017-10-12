@@ -270,10 +270,12 @@ export class EventsProvider {
   formatEventForUpload(event){
     delete event.id;
     delete event.syncStatus;
+    delete event.orgUnitName;
+    delete event.programName;
 
-    if(event.completedDate == "0"){
-      delete event.completedDate;
-    }
+    // if(event.completedDate == "0"){
+    //   delete event.completedDate;
+    // }
     if(event.attributeCategoryOptions == "0"){
       delete event.attributeCategoryOptions;
     }
@@ -283,6 +285,7 @@ export class EventsProvider {
       event.notes = String(event.notes);
     }
     delete event.notes;
+    delete event.event;
     return event;
   }
 
@@ -334,24 +337,20 @@ export class EventsProvider {
 
 
 
-  uploadEventsToServer(event,currentUser){
+  uploadEventsToServer(events,currentUser){
     let modifiedEvent = [];
     return new Promise((resolve, reject)=>{
-      // events.forEach((event:any)=> {
+       events.forEach((event:any)=> {
         if(event["syncStatus"] == "not-synced"){
           //delete event id for new event
           let eventTobUploaded = event;
           let eventToUpload = this.formatEventForUpload(eventTobUploaded);
-          // let url = "/api/25/events/"+JSON.stringify(eventToUpload.json);
           let url = "/api/25/events";
           console.log(JSON.stringify(eventToUpload));
 
           modifiedEvent.push(eventTobUploaded)
 
-          alert("Parsed :"+ JSON.parse(eventToUpload))
-
           this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
-          // this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
             //response = response.json();
             console.log(JSON.stringify(response));
             alert("Succes 1 :"+JSON.stringify(response))
@@ -364,21 +363,22 @@ export class EventsProvider {
             console.log("error on post : " + JSON.stringify(error));
           })
         }else{
-          let eventTobUploaded = event;
-          let eventToUpload = this.formatEventForUpload(eventTobUploaded);
-          let url = "/api/25/events/"+eventToUpload.event;
-          this.httpClient.put(url,JSON.stringify(eventToUpload) ,currentUser).then(response=>{
+          let eventTobUploaded ={};
+          // alert("see final event :"+JSON.stringify(event))
+           let url = "/api/events.json";
+          this.httpClient.post(url, JSON.stringify(event) ,currentUser).then(response=>{
             // response = JSON.parse(response);
+            alert("Succes 2 :"+JSON.stringify(response))
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
 
             });
           },error=>{
             alert("error 2 :"+JSON.stringify(error))
-            console.log("error on put : " + JSON.stringify(error.json()));
+            console.log("error on put : " + JSON.stringify(error));
           })
         }
-      // });
+       });
       //
       resolve();
     });

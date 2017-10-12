@@ -4,7 +4,7 @@
           <!--<ion-card>-->
           <div class="item-card">
             <ion-item class="item">
-              <div (tap)="viewMoreDetailsOnEntryForm(eventId)" class="whiteBackground">
+              <div (tap)="viewMoreDetailsOnEvent(eventId)" class="whiteBackground">
                   <p >
                     <b>Form : </b>{{eventSyncObjects[eventId].name}}<br>
                     <b>Data : </b>{{eventSyncObjects[eventId].dataValues.length}}
@@ -12,12 +12,12 @@
               </div>
 
             <ion-icon *ngIf="!syncProcess[eventId] && syncStatus === 'Not synced'"
-                      (tap)="syncSelectedDataSetData(eventSyncObjects[eventId].dataValues,eventSyncObjects[eventId].name,eventId)"
+                      (tap)="syncSelectedEventData(eventSyncObjects[eventId].dataValues,eventSyncObjects[eventId].name,eventId)"
                       margin-right="10px" color="primary" clear  name="ios-cloud-upload-outline" item-right></ion-icon>
             <ion-icon *ngIf="syncProcess[eventId]"
                       margin-right="10px" item-right><page-loading loadingSize="small"></page-loading></ion-icon>
 
-            <ion-icon (tap)="dataSetDataDeleteConfirmation(eventSyncObjects[eventId].name,eventId)"
+            <ion-icon (tap)="eventDeleteConfirmation(eventSyncObjects[eventId].name,eventId)"
                       *ngIf="!isDataSetDataDeletionOnProgress[eventId]"
                       color="danger" clear  name="md-trash" item-right></ion-icon>
 

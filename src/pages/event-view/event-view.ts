@@ -1,5 +1,5 @@
 import { Component,OnInit } from '@angular/core';
-import {NavController, ToastController, NavParams, IonicPage} from 'ionic-angular';
+import {NavController, ToastController, NavParams, IonicPage, FabContainer, AlertController} from 'ionic-angular';
 import {EventsProvider} from "../../providers/events/events";
 import {ProgramsProvider} from "../../providers/programs/programs";
 import {UserProvider} from "../../providers/user/user";
@@ -33,9 +33,10 @@ export class EventView implements OnInit{
   public event : any;
   public dataElementMapper : any;
 
-  constructor(public NavParams:NavParams,public eventProvider :EventsProvider,public Program : ProgramsProvider,
+  constructor(public NavParams:NavParams,public eventProvider :EventsProvider,public Program : ProgramsProvider, public eventsProvider:EventsProvider,
               public orgUnitProvider:OrganisationUnitsProvider, public toastCtrl: ToastController,public user : UserProvider,public appProvider:AppProvider,
-              public programsProvider: ProgramsProvider, public navCtrl: NavController, public dataElementProvider:DataElementsProvider){
+              public programsProvider: ProgramsProvider, public navCtrl: NavController, public dataElementProvider:DataElementsProvider,
+              public alertCtrl:AlertController){
 
 
   }
@@ -126,17 +127,62 @@ export class EventView implements OnInit{
     this.loadingMessages.push(message);
   }
 
-  // gotToEditEvent(event){
-  //   let params = {
-  //     orgUnitId : this.params.orgUnitId,
-  //     orgUnitName : this.params.orgUnitName,
-  //     programId : this.params.programId,
-  //     programName : this.params.programName,
-  //     selectedDataDimension : this.params.selectedDataDimension,
-  //     event : event.event
-  //   };
-  //   this.navCtrl.push(EventCaptureForm,{params:params});
-  // }
+  gotToEditEvent(event, fab:FabContainer){
+    fab.close();
+    let params = {
+      orgUnitId : this.params.orgUnitId,
+      orgUnitName : this.params.orgUnitName,
+      programId : this.params.programId,
+      programName : this.params.programName,
+      selectedDataDimension : this.params.selectedDataDimension,
+      event : event.event
+    };
+
+    alert("edit Event param :"+JSON.stringify(params))
+    this.navCtrl.push('EventCaptureForm',{params:params});
+  }
+
+
+
+  confirmEventDelete(event, fab){
+    let alertCtrl = this.alertCtrl.create({
+      title: "Confirm Event Delete",
+      message:"Are you sure you want to delete selected event from storage ?",
+      buttons:[{
+        text: 'Cancel',
+        role:'cancel',
+        handler:()=>{
+          this.fabCloser(fab);
+        }
+
+      },{
+        text: 'Delete',
+        handler: ()=>{
+          this.eventViewedDelete(event, fab);
+    }
+      }]
+    });
+    alertCtrl.present();
+
+  }
+
+  eventViewedDelete(event, fab:FabContainer){
+    fab.close();
+    //this.loadingMessages = "Clear all data on " + event.eventProgram;
+    let eventId = [];
+    eventId.push(event.event);
+
+    if(eventId.length > 0){
+      this.eventsProvider.deleteEventsByIds(eventId,this.currentUser).then(()=>{
+
+        this.navCtrl.pop();
+      },error=>{});
+    }
+  }
+
+  fabCloser(fab:FabContainer){
+    fab.close();
+  }
 
 
 

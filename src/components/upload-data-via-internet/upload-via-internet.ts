@@ -63,7 +63,9 @@ export class UploadViaInternetComponent implements OnInit{
       });
       if(shouldUpload){
         this.loadingMessage = "Prepare data for uploading";
+        //alert("modified event :"+JSON.stringify(data))
         this.syncProvider.prepareDataForUploading(data).then((preparedData : any)=>{
+          //alert("prepared :"+JSON.stringify(preparedData))
           this.loadingMessage = "Uploading data";
           this.syncProvider.uploadingData(preparedData,data,this.currentUser).then((response)=>{
             this.isLoading = false;
