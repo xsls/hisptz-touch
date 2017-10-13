@@ -32,7 +32,7 @@ export class EventCapturePage implements OnInit {
   currentUser: any;
   programIdsByUserRoles: Array<string>;
   isLoading: boolean;
-  loadingMessage: string;
+  loadingMessage: string  ='loading';
   organisationUnitLabel: string;
   programLabel: string;
   isFormReady: boolean;
@@ -83,7 +83,7 @@ export class EventCapturePage implements OnInit {
     this.programIdsByUserRoles = [];
     this.programs = [];
     this.currentEvents = [];
-    this.loadingMessage = "Loading. user information";
+    this.loadingMessage = "Loading user information";
     this.isLoading = true;
     this.isFormReady = false;
     this.isProgramDimensionApplicable = false;
@@ -398,7 +398,7 @@ export class EventCapturePage implements OnInit {
           this.loadEventListAsTable();
         }else {
           this.loadingData = false;
-          this.showEmptyList = true;
+         // this.showEmptyList = true;
         }
       })
     });

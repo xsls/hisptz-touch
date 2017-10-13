@@ -53,6 +53,8 @@ export class EventCaptureForm implements OnInit{
   fieldChecker:boolean = false;
   hasCompulsory:boolean = false;
 
+  sameEventIdFromEdit:any
+
   //pagination controller
   public currentPage : number ;
   public paginationLabel : string = "";
@@ -76,12 +78,18 @@ export class EventCaptureForm implements OnInit{
       this.currentUser = user;
       this.event = true;
       this.entryFormParameter = this.params.get("params");
+
+      if(this.entryFormParameter.eventIdFromEdit){
+        this.sameEventIdFromEdit = this.entryFormParameter.eventIdFromEdit
+        this.eventDate = this.entryFormParameter.eventDateFromEdit;
+        this.eventComment = this.entryFormParameter.notesFromEdit;
+        this.status = this.entryFormParameter.statusFromEdit;
+      }
+
       this.currentProgram = this.programsProvider.lastSelectedProgram;
       this.currentOrgUnit = this.organisationUnitProvider.lastSelectedOrgUnit;
       this.loadProgramMetadata();
-
     });
-
 
   }
 
@@ -89,7 +97,6 @@ export class EventCaptureForm implements OnInit{
   }
 
   loadProgramMetadata(){
-
 
     this.eventCompleteness = false;
     this.loadingMessages = [];
@@ -182,27 +189,11 @@ export class EventCaptureForm implements OnInit{
     });
 
     this.programsProvider.getProgramsStages(this.currentProgram.id, this.currentUser).then((programStages:any)=> {
-      // this.event = {
-      //   event: dhis2.util.uid(),
-      //   program: this.currentProgram.id,
-      //   programStage: programStages[0].id.split("-")[1],
-      //   orgUnit: this.currentOrgUnit.id,
-      //   orgUnitName: this.currentOrgUnit.name,
-      //   status: this.status,
-      //   eventDate: this.eventDate,
-      //   completeDate: "",
-      //   attributeCategoryOptions: this.entryFormParameter.attribCos,
-      //   attributeOptionCombo: this.entryFormParameter.attibCc,
-      //   dataValues: dataElementInfo,
-      //   notes: this.eventComment,
-      //   syncStatus: "new event"
-      //
-      // };
 
       notes.push(this.eventComment)
 
       event ={
-        event: dhis2.util.uid(),
+        event: (this.sameEventIdFromEdit)?this.sameEventIdFromEdit : dhis2.util.uid(),
         program: this.currentProgram.id,
         programName: this.currentProgram.name,
         programStage: programStages[0].id.split("-")[1],
@@ -216,15 +207,7 @@ export class EventCaptureForm implements OnInit{
         notes: notes,
         syncStatus: "not-synced"
 
-      }
-
-
-      //alert("new Event :"+JSON.stringify(event))
-
-      //eventfomart.push(this.event);
-
-
-      // this.eventsProvider.uploadEventsToServer(event, this.currentUser).then((response: any) => {
+      };
 
       this.eventsProvider.saveEvent(event, this.currentUser).then(() => {
 

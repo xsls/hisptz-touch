@@ -60,7 +60,7 @@ export class EventsSyncContainerPage  implements OnInit{
     this.availableEvents = this.navParams.get("events");
 
     // this.valueHolder = this.navParams.get("events");
-    alert("EventsTotal :"+JSON.stringify(this.navParams.get("events")))
+    //alert("EventsTotal :"+JSON.stringify(this.navParams.get("events")))
     this.navParams.get("events").forEach((event : any)=>{
       // eventIds.push(event.programName);
       this.loadingMessages = "Grouping data by entry form";

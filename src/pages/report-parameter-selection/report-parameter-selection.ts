@@ -44,7 +44,7 @@ export class ReportParameterSelectionPage implements OnInit{
   ngOnInit(){
     this.icons.orgUnit = "assets/reports/orgUnit.png";
     this.icons.period = "assets/reports/period.png";
-    this.icons.report = "assets/reports/reports.png";
+    this.icons.report = "assets/reports/reportGenerate.png";
 
     this.reportName = this.params.get('name');
     this.reportId = this.params.get("id");

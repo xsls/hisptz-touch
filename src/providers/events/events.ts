@@ -353,7 +353,7 @@ export class EventsProvider {
           this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
             //response = response.json();
             console.log(JSON.stringify(response));
-            alert("Succes 1 :"+JSON.stringify(response))
+            //alert("Succes 1 :"+JSON.stringify(response))
 
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
@@ -368,7 +368,7 @@ export class EventsProvider {
            let url = "/api/events.json";
           this.httpClient.post(url, JSON.stringify(event) ,currentUser).then(response=>{
             // response = JSON.parse(response);
-            alert("Succes 2 :"+JSON.stringify(response))
+            //alert("Succes 2 :"+JSON.stringify(response))
             this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
             },error=>{
 

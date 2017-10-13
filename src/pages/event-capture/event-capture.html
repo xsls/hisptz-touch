@@ -80,7 +80,7 @@
   <page-loading loadingSize="large" [loadingMessage]="loadingMessage"></page-loading>
   </div>
 
-  <div *ngIf = "showEmptyList">
+  <div *ngIf = "showEmptyList && !loadingData && !tableFormat">
     <empty-list-notification [emptyListMessage]="'There are no events to display'"></empty-list-notification>
   </div>
 

@@ -61,7 +61,7 @@ export class HttpClientProvider {
     headers.append('Content-Type', 'application/json;charset=UTF-8');
     headers.append("Accept","application/json,text/plain, */*");
     return new Promise((resolve, reject)=> {
-      alert("url final :"+JSON.stringify(url))
+      //alert("url final :"+JSON.stringify(url))
       this.http.post(url,data,{headers:headers})
         .then((response:any)  => {
           resolve(response);

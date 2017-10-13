@@ -53,10 +53,10 @@ export class EventView implements OnInit{
 
   }
 
-  ionViewDidEnter(){
-    if(this.params && this.params.programId){
+  ionViewWillEnter(){
+    // if(this.params && this.params.programId){
       this.loadProgramMetadata();
-    }
+    // }
   }
 
   /**
@@ -130,15 +130,19 @@ export class EventView implements OnInit{
   gotToEditEvent(event, fab:FabContainer){
     fab.close();
     let params = {
-      orgUnitId : this.params.orgUnitId,
-      orgUnitName : this.params.orgUnitName,
-      programId : this.params.programId,
-      programName : this.params.programName,
-      selectedDataDimension : this.params.selectedDataDimension,
-      event : event.event
+      // orgUnitId : this.params.orgUnitId,
+      // orgUnitName : this.params.orgUnitName,
+      // programId : this.params.programId,
+      // programName : this.params.programName,
+      // selectedDataDimension : this.params.selectedDataDimension,
+      eventIdFromEdit : event.event,
+      eventDateFromEdit: event.eventDate,
+      statusFromEdit: event.status,
+      notesFromEdit: event.notes
+
     };
 
-    alert("edit Event param :"+JSON.stringify(params))
+    //alert("edit Event param :"+JSON.stringify(params))
     this.navCtrl.push('EventCaptureForm',{params:params});
   }
 
