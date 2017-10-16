@@ -57,8 +57,12 @@ export class HttpClientProvider {
   post(url,data,user) {
     this.http.useBasicAuth(user.username,user.password);
     url = user.serverUrl + this.getUrlBasedOnDhisVersion(url,user);
+    let headers = new Headers({'Content-Type': 'application/json;charset=UTF-8'});
+    headers.append('Content-Type', 'application/json;charset=UTF-8');
+    headers.append("Accept","application/json,text/plain, */*");
     return new Promise((resolve, reject)=> {
-      this.http.post(url,data,{})
+      //alert("url final :"+JSON.stringify(url))
+      this.http.post(url,data,{headers:headers})
         .then((response:any)  => {
           resolve(response);
         },error=>{
@@ -73,7 +77,9 @@ export class HttpClientProvider {
   defaultPost(url, data, user){
     url = this.getUrlBasedOnDhisVersion(url,user);
     let headers = new Headers();
+    // let jsonHeader
     headers.append('Authorization', 'Basic ' +user.authorizationKey);
+    headers.append('Content-Type', 'application/json');
     return new Promise((resolve, reject)=> {
       this.defaultHttp.post(user.serverUrl + url, data, { headers: headers }).timeout(this.timeOutTime).subscribe((response)=>{
         resolve();

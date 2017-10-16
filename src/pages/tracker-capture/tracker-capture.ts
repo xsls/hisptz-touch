@@ -1,9 +1,10 @@
 import {Component, OnInit} from '@angular/core';
-import {IonicPage, ModalController, NavController} from 'ionic-angular';
+import {FabContainer, IonicPage, ModalController, NavController} from 'ionic-angular';
 import {UserProvider} from "../../providers/user/user";
 import {AppProvider} from "../../providers/app/app";
 import {OrganisationUnitsProvider} from "../../providers/organisation-units/organisation-units";
 import {ProgramsProvider} from "../../providers/programs/programs";
+import {TrackerCaptureProvider} from "../../providers/tracker-capture/tracker-capture";
 
 /**
  * Generated class for the TrackerCapturePage page.
@@ -29,27 +30,32 @@ export class TrackerCapturePage implements OnInit{
   programLabel: string;
   isFormReady : boolean;
   isProgramDimensionApplicable : boolean;
-  programDimensionNotApplicablableMessage : string;
-  programCategoryCombo : any;
   selectedDataDimension : Array<any>;
   programs : Array<any>;
+  trackedEntityInstances : Array<any>;
+  programTrackedEntityAttributes : Array<any>;
+  attributeToDisplay : any;
   icons : any = {};
-
-  //  WITHOUT_REGISTRATION
 
   constructor(public navCtrl: NavController,private modalCtrl : ModalController,
               private userProvider : UserProvider,private appProvider : AppProvider,
               private programsProvider : ProgramsProvider,
+              private trackerCaptureProvider : TrackerCaptureProvider,
               private organisationUnitsProvider : OrganisationUnitsProvider) {
   }
 
-  ionViewDidLoad() {
+  ionViewDidEnter() {
+    if(this.isFormReady){
+      console.log("Refreshing list");
+      this.loadingSavedTrackedEntityInstances(this.selectedProgram.id,this.selectedOrgUnit.id);
+    }
   }
 
   ngOnInit(){
     this.icons.orgUnit = "assets/data-entry/orgUnit.png";
     this.icons.program = "assets/event-capture/program.png";
-
+    this.trackedEntityInstances = [];
+    this.attributeToDisplay = {};
     this.loadingMessage = "Loading. user information";
     this.isLoading = true;
     this.isFormReady = false;
@@ -87,9 +93,18 @@ export class TrackerCapturePage implements OnInit{
     this.programsProvider.getProgramsAssignedOnOrgUnitAndUserRoles(this.selectedOrgUnit.id,programType,this.programIdsByUserRoles,this.currentUser).then((programs : any)=>{
       this.programs = programs;
       this.selectedProgram = this.programsProvider.lastSelectedProgram;
-      this.updateTrackerCaptureSelections();
-      this.isLoading = false;
-      this.loadingMessage = "";
+      if(this.selectedProgram && this.selectedProgram.id){
+        this.trackerCaptureProvider.getTrackedEntityRegistration(this.selectedProgram.id,this.currentUser).then((programTrackedEntityAttributes : any)=>{
+          this.programTrackedEntityAttributes = programTrackedEntityAttributes;
+          this.updateTrackerCaptureSelections();
+          this.isLoading = false;
+          this.loadingMessage = "";
+        }).catch(error=>{
+          this.isLoading = false;
+          console.log(JSON.stringify(error));
+          this.appProvider.setNormalNotification("Fail to load registration form for " + this.selectedProgram.name);
+        });
+      }
     },error=>{
       this.isLoading = false;
       this.loadingMessage = "";
@@ -113,6 +128,19 @@ export class TrackerCapturePage implements OnInit{
     this.isFormReady = this.isAllParameterSelected();
     this.isLoading = false;
     this.loadingMessage = "";
+    if(this.isFormReady){
+      if(this.programTrackedEntityAttributes && this.programTrackedEntityAttributes.length > 0){
+        this.programTrackedEntityAttributes.forEach((programTrackedEntityAttribute : any)=>{
+          if(programTrackedEntityAttribute.displayInList){
+            let attribute = programTrackedEntityAttribute.trackedEntityAttribute;
+            this.attributeToDisplay[attribute.id] = attribute.name;
+          }
+        });
+      }
+      this.loadingSavedTrackedEntityInstances(this.selectedProgram.id,this.selectedOrgUnit.id);
+    }else{
+      this.trackedEntityInstances = [];
+    }
   }
 
   openOrganisationUnitTree(){
@@ -136,13 +164,33 @@ export class TrackerCapturePage implements OnInit{
         if(selectedProgram && selectedProgram.id){
           this.selectedProgram = selectedProgram;
           this.programsProvider.setLastSelectedProgram(selectedProgram);
-          this.updateTrackerCaptureSelections();
+          this.trackerCaptureProvider.getTrackedEntityRegistration(selectedProgram.id,this.currentUser).then((programTrackedEntityAttributes : any)=>{
+            this.programTrackedEntityAttributes = programTrackedEntityAttributes;
+            this.updateTrackerCaptureSelections();
+          }).catch(error=>{
+            this.isLoading = false;
+            console.log(JSON.stringify(error));
+            this.appProvider.setNormalNotification("Fail to load registration form for " + this.selectedProgram.name);
+          });
         }
       });
       modal.present();
     }else{
       this.appProvider.setNormalNotification("There are no program to select on " + this.selectedOrgUnit.name);
     }
+  }
+
+  loadingSavedTrackedEntityInstances(programId,orgUnitId){
+    this.isLoading = true;
+    this.loadingMessage = "Loading tracked entity list";
+    this.trackerCaptureProvider.loadTrackedEntityInstancesList(programId,orgUnitId,this.currentUser).then((trackedEntityInstances : any)=>{
+      this.trackedEntityInstances = trackedEntityInstances;
+      this.isLoading = false;
+    }).catch(error=>{
+      console.log(JSON.stringify(error));
+      this.isLoading = false;
+      this.appProvider.setNormalNotification("Fail to load tracked entity list");
+    });
   }
 
   isAllParameterSelected(){
@@ -154,5 +202,23 @@ export class TrackerCapturePage implements OnInit{
     return result;
   }
 
+  hideAndShowColumns(fab : FabContainer){
+    let modal = this.modalCtrl.create('TrackerHideShowColumnPage',{attributeToDisplay :this.attributeToDisplay,programTrackedEntityAttributes : this.programTrackedEntityAttributes});
+    modal.onDidDismiss((attributeToDisplay : any)=>{
+      if(attributeToDisplay){
+        this.attributeToDisplay = attributeToDisplay;
+      }
+    });
+    modal.present().then((attributeToDisplay)=>{
+      fab.close();
+    }).catch(error=>{
+      console.log(JSON.stringify(error));
+    });
+  }
+
+  registerNewTrackedEntity(fab : FabContainer){
+    fab.close();
+    this.navCtrl.push("TrackerEntityRegisterPage",{});
+  }
 
 }

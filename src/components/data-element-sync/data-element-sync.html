@@ -3,6 +3,9 @@
   <page-loading loadingSize="large" [loadingMessage] = "loadingMessage"></page-loading>
 </div>
 <div *ngIf="!isLoading" class="whiteBackground">
+
+
+  <div *ngIf="!forEvents" class="whiteBackground">
   <ion-grid class="whiteBackground">
     <ion-row class="whiteBackground">
       <ion-col >
@@ -18,6 +21,29 @@
       </ion-col>
     </ion-row>
   </ion-grid>
+  </div>
+
+  <div *ngIf="forEvents" class="whiteBackground">
+    <ion-grid class="whiteBackground">
+      <ion-row class="whiteBackground">
+        <ion-col >
+          <div *ngFor="let dataElement of dataElements" >
+            <div class="contents">
+              <p >
+                <b>Organisation Unit : </b>{{ dataElement.orgUnit}}<br>
+                <b>Program : </b>{{ dataElement.name }}<br>
+                <b>Data Element : </b>{{ dataElement.dataElement}}<br>
+                <b>value : </b>{{ dataElement.value }}<br>
+              </p>
+              <hr>
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+
+
 </div>
 
 

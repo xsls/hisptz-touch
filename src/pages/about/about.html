@@ -82,16 +82,16 @@
             </div>
           </div>
           <div *ngIf="aboutContent.id == 'eventStatus'">
-            <div class="item-card" color="font-color" >
+            <div class="item-card" color="font-color"  (tap)="viewEventDataSynchronisationsStatuses('synced')" >
               <ion-item >
                 Synced
-                <ion-badge color="icon-color" item-end> 0</ion-badge>
+                <ion-badge color="icon-color" item-end> {{eventsDataStorage.online}}</ion-badge>
               </ion-item>
             </div>
-            <div class="item-card" color="font-color" >
+            <div class="item-card" color="font-color" (tap)="viewEventDataSynchronisationsStatuses('not-synced')" >
               <ion-item >
                 Not Synced
-                <ion-badge color="icon-color" item-end> 0 </ion-badge>
+                <ion-badge color="icon-color" item-end> {{eventsDataStorage.offline}} </ion-badge>
               </ion-item>
             </div>
           </div>

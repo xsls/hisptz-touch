@@ -6,11 +6,11 @@ import {HttpClientProvider} from "../http-client/http-client";
 import {AppProvider} from "../app/app";
 
 /*
-  Generated class for the EventsProvider provider.
+ Generated class for the EventsProvider provider.
 
-  See https://angular.io/docs/ts/latest/guide/dependency-injection.html
-  for more info on providers and Angular DI.
-*/
+ See https://angular.io/docs/ts/latest/guide/dependency-injection.html
+ for more info on providers and Angular DI.
+ */
 @Injectable()
 export class EventsProvider {
 
@@ -29,8 +29,8 @@ export class EventsProvider {
     return this.lastChoosedOrgUnit;
   }
 
-  downloadEventsFromServer(orgUnitId,programId,currentUser){
-    let url = "/api/25/events.json?orgUnit="+orgUnitId+"&program="+programId ;
+  downloadEventsFromServer(orgUnit,program,currentUser){
+    let url = "/api/25/events.json?orgUnit="+orgUnit.id+"&program="+program.id ;
 
     return new Promise((resolve, reject) =>{
       this.httpClient.get(url,currentUser).then((eventsData: any)=>{
@@ -100,22 +100,27 @@ export class EventsProvider {
    * @param currentUser
    * @returns {Promise<T>}
    */
-  loadEventsFromServer(orgUnit,programId,programComboId,dataDimensions,currentUser){
-    let url = "/api/25/events.json?orgUnit="+orgUnit.id + "&programStage="+programId;
-    if(dataDimensions.length > 0){
-      let attributeCos = dataDimensions.toString();
+  loadEventsFromServer(orgUnit,program,programComboId,attribcc, attribCos,currentUser){
+    // alert("dataDim :"+JSON.stringify(programComboId))
+    alert("dataDim :"+attribCos.toString())
+    let url = "/api/25/events.json?orgUnit="+orgUnit.id + "&programStage="+program.id;
+    if(attribCos.length > 0){
+      let attributeCos = attribCos.toString();
       //attributeCos = attributeCos.replace(/,/g, ';');
       url += "&attributeCc="+programComboId+"&attributeCos="+attributeCos;
     }
     url += "&pageSize=50&page=1&totalPages=true";
     return new Promise((resolve, reject) =>{
-      this.http.get(url,currentUser).subscribe(events=>{
-        resolve(events.json())
+      this.httpClient.get(url,currentUser).then((eventsData: any)=>{
+        eventsData = JSON.parse(eventsData.data);
+        resolve(eventsData)
+
       },error=>{
-        reject(error.json());
+        reject(error);
       });
     });
   }
+
 
 
 
@@ -155,7 +160,7 @@ export class EventsProvider {
    * @returns {Promise<T>}
    */
   loadingEventByIdFromStorage(eventTableId,currentUser){
-    let attribute = "id";
+    let attribute = "event";
     let attributeArray = [];
     attributeArray.push(eventTableId);
     return new Promise((resolve, reject)=>{
@@ -177,7 +182,7 @@ export class EventsProvider {
    * @param status
    * @returns {Promise<T>}
    */
-  getEventsFromStorageByStatus(currentUser,status){
+  getEventsFromStorageByStatus(status,currentUser){
     let attribute = "syncStatus";
     let attributeArray = [];
     attributeArray.push(status);
@@ -217,9 +222,11 @@ export class EventsProvider {
         header : [],rows : []
       };
       //set headers
+      //alert("toDisplaay: "+JSON.stringify(dataElementToDisplay))
+
       Object.keys(dataElementToDisplay).forEach((dataElementId:any)=>{
         tableFormat.header.push({
-          id : dataElementId, name : dataElementToDisplay[dataElementId].name
+          id : dataElementToDisplay[dataElementId].id, name : dataElementToDisplay[dataElementId].name
         })
       });
       //setting rows
@@ -249,6 +256,7 @@ export class EventsProvider {
         });
         eventDataValuesMapper[event.event] = dataValueMapper;
       });
+      //alert("DataValue Mapper: "+JSON.stringify(eventDataValuesMapper))
       resolve(eventDataValuesMapper);
     });
   }
@@ -262,10 +270,12 @@ export class EventsProvider {
   formatEventForUpload(event){
     delete event.id;
     delete event.syncStatus;
+    delete event.orgUnitName;
+    delete event.programName;
 
-    if(event.completedDate == "0"){
-      delete event.completedDate;
-    }
+    // if(event.completedDate == "0"){
+    //   delete event.completedDate;
+    // }
     if(event.attributeCategoryOptions == "0"){
       delete event.attributeCategoryOptions;
     }
@@ -275,6 +285,7 @@ export class EventsProvider {
       event.notes = String(event.notes);
     }
     delete event.notes;
+    delete event.event;
     return event;
   }
 
@@ -323,5 +334,94 @@ export class EventsProvider {
       });
     });
   }
+
+
+
+  uploadEventsToServer(events,currentUser){
+    let modifiedEvent = [];
+    return new Promise((resolve, reject)=>{
+       events.forEach((event:any)=> {
+        if(event["syncStatus"] == "not-synced"){
+          //delete event id for new event
+          let eventTobUploaded = event;
+          let eventToUpload = this.formatEventForUpload(eventTobUploaded);
+          let url = "/api/25/events";
+          console.log(JSON.stringify(eventToUpload));
+
+          modifiedEvent.push(eventTobUploaded)
+
+          this.httpClient.post(url ,eventToUpload,currentUser).then(response=>{
+            //response = response.json();
+            console.log(JSON.stringify(response));
+            //alert("Succes 1 :"+JSON.stringify(response))
+
+            this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
+            },error=>{
+            });
+          },error=>{
+            alert("error 1 :"+JSON.stringify(error))
+            console.log("error on post : " + JSON.stringify(error));
+          })
+        }else{
+          let eventTobUploaded ={};
+          // alert("see final event :"+JSON.stringify(event))
+           let url = "/api/events.json";
+          this.httpClient.post(url, JSON.stringify(event) ,currentUser).then(response=>{
+            // response = JSON.parse(response);
+            //alert("Succes 2 :"+JSON.stringify(response))
+            this.updateUploadedLocalStoredEvent(event,response,currentUser).then(()=>{
+            },error=>{
+
+            });
+          },error=>{
+            alert("error 2 :"+JSON.stringify(error))
+            console.log("error on put : " + JSON.stringify(error));
+          })
+        }
+       });
+      //
+      resolve();
+    });
+  }
+
+
+  updateUploadedLocalStoredEvent(event,response,currentUser){
+    response = response.response;
+    if(response.importSummaries[0].reference){
+      event.event = response.importSummaries[0].reference;
+    }
+    event["syncStatus"] = "synced";
+    return new Promise((resolve, reject)=>{
+      this.saveEvent(event,currentUser).then(response=>{
+        resolve();
+      },error=>{
+        reject();
+      })
+    })
+  }
+
+
+  deleteEventsByIds(eventIds, currentUser) {
+    let resource = "events"
+    let successCount = 0;
+    let failCount = 0;
+    return new Promise( (resolve, reject)=> {
+      for(let dataValueId of eventIds){
+        this.sqlLite.deleteFromTableByAttribute(resource,"event",dataValueId, currentUser.currentDatabase).then(()=> {
+          successCount = successCount + 1;
+          if((successCount + failCount) == eventIds.length){
+            resolve();
+          }
+        }, error=> {
+          failCount = failCount + 1;
+          if((successCount + failCount) == eventIds.length){
+            resolve();
+          }
+        });
+      }
+    });
+  }
+
+
 
 }

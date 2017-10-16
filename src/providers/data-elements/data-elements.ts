@@ -62,11 +62,11 @@ export class DataElementsProvider {
 
   /**
    *
-   * @param dataElementIds
+   * @param dataSetDatElements
    * @param currentUser
    * @returns {Promise<any>}
    */
-  getDataElementsByIds(dataSetDatElements,currentUser){
+  getDataElementsByIdsForDataEntry(dataSetDatElements,currentUser){
     let attributeKey = "id";
     let dataElementIds = [];
     dataSetDatElements.forEach((dataSetDatElement : any)=>{
@@ -78,6 +78,24 @@ export class DataElementsProvider {
       },error=>{reject(error)})
     });
   }
+
+  /**
+   *
+   * @param dataElementIds
+   * @param currentUser
+   * @returns {Promise<any>}
+   */
+  getDataElementsByIdsForEvents(dataElementIds,currentUser){
+    let attributeKey = "id";
+    return new Promise((resolve, reject)=> {
+      this.SqlLite.getDataFromTableByAttributes(this.resource,attributeKey,dataElementIds,currentUser.currentDatabase).then(( dataElements: any)=>{
+        resolve(dataElements);
+      },error=>{reject(error)})
+    });
+  }
+
+
+
 
   getSortedListOfDataElements(dataSetDatElements,dataElements){
     let sortedDataElements = [];
@@ -104,11 +122,26 @@ export class DataElementsProvider {
   getDataElementsByName(dataSetDatElements,currentUser){
     let attributeKey = "id";
     let dataElementIds = [];
-    // dataSetDatElements.forEach((dataSetDatElement : any)=>{
+      // dataSetDatElements.forEach((dataSetDatElement : any)=>{
       dataElementIds.push(dataSetDatElements);
-    // });
+      // });
     return new Promise((resolve, reject)=> {
       this.SqlLite.getDataFromTableByAttributes(this.resource,attributeKey,dataElementIds,currentUser.currentDatabase).then(( dataElements: any)=>{
+        resolve(dataElements);
+      },error=>{reject(error)})
+    });
+  }
+
+
+  getBulkDataElementsByName(dataSetDatElements,currentUser){
+    let attributeKey = "id";
+    let dataElementIds = [];
+    // dataSetDatElements.forEach((dataSetDatElement : any)=>{
+    //dataElementIds.push(dataSetDatElements);
+    // });
+    return new Promise((resolve, reject)=> {
+      // this.SqlLite.getDataFromTableByAttributes(this.resource,attributeKey,dataElementIds,currentUser.currentDatabase).then(( dataElements: any)=>{
+      this.SqlLite.getDataFromTableByAttributes(this.resource,attributeKey,dataSetDatElements,currentUser.currentDatabase).then(( dataElements: any)=>{
         resolve(dataElements);
       },error=>{reject(error)})
     });

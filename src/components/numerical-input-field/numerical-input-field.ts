@@ -27,6 +27,7 @@ export class NumericalInputFieldComponent implements OnInit{
     if(this.data && this.data[fieldId]){
       this.inputFieldValue  = this.data[fieldId].value;
     }
+
   }
 
   updateValues(){

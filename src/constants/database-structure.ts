@@ -301,6 +301,7 @@ export const DATABASE_STRUCTURE = {
       {value: 'completeEventsExpiryDays', type: 'TEXT'},
       {value: 'displayFrontPageList', type: 'TEXT'},
       {value: 'categoryCombo', type: 'LONGTEXT'},
+      {value: 'trackedEntity', type: 'LONGTEXT'},
       {value: 'attributeValues', type: 'LONGTEXT'},
       {value: 'validationCriterias', type: 'LONGTEXT'},
       {value: 'translations', type: 'LONGTEXT'}
@@ -362,6 +363,59 @@ export const DATABASE_STRUCTURE = {
     displayName : "",
     dependentTable : []
   },
+  trackedEntityInstances: {
+    columns: [
+      {value: 'id', type: 'TEXT'},
+      {value: 'trackedEntity', type: 'TEXT'},
+      {value: 'orgUnit', type: 'TEXT'},
+      {value: 'orgUnitName', type: 'TEXT'},
+      {value: 'trackedEntityInstance', type: 'TEXT'},
+      {value: 'deleted', type: 'TEXT'},
+      {value: 'inactive', type: 'TEXT'},
+      {value: 'enrollments', type: 'LONGTEXT'},
+      {value: 'relationships', type: 'LONGTEXT'},
+      {value: 'syncStatus', type: 'TEXT'}
+    ],
+    isMetadata: false,
+    resourceType: "",
+    batchSize : 100,
+    displayName : "",
+    dependentTable : []
+  },
+  trackedEntityAttributeValues: {
+    columns: [
+      {value: 'id', type: 'TEXT'},
+      {value: 'trackedEntityInstance', type: 'TEXT'},
+      {value: 'attribute', type: 'TEXT'},
+      {value: 'value', type: 'TEXT'}
+    ],
+    isMetadata: false,
+    resourceType: "",
+    batchSize : 100,
+    displayName : "",
+    dependentTable : []
+  },
+  enrollments: {
+    columns: [
+      {value: 'id', type: 'TEXT'},
+      {value: 'trackedEntity', type: 'TEXT'},
+      {value: 'orgUnit', type: 'TEXT'},
+      {value: 'program', type: 'TEXT'},
+      {value: 'enrollment', type: 'TEXT'},
+      {value: 'trackedEntityInstance', type: 'TEXT'},
+      {value: 'enrollmentDate', type: 'TEXT'},
+      {value: 'incidentDate', type: 'TEXT'},
+      {value: 'status', type: 'TEXT'},
+      {value: 'attributes', type: 'LONGTEXT'},
+      {value: 'events', type: 'LONGTEXT'},
+      {value: 'syncStatus', type: 'TEXT'}
+    ],
+    isMetadata: false,
+    resourceType: "",
+    batchSize : 100,
+    displayName : "",
+    dependentTable : []
+  },
   programIndicators: {
     columns: [
       {value: 'id', type: 'TEXT'},
@@ -380,7 +434,13 @@ export const DATABASE_STRUCTURE = {
       {value: 'id', type: 'TEXT'},
       {value: 'programId', type: 'TEXT'},
       {value: 'name', type: 'TEXT'},
+      {value: 'executionDateLabel', type: 'TEXT'},
+      {value: 'formType', type: 'TEXT'},
       {value: 'sortOrder', type: 'TEXT'},
+      {value: 'generatedByEnrollmentDate', type: 'TEXT'},
+      {value: 'autoGenerateEvent', type: 'TEXT'},
+      {value: 'captureCoordinates', type: 'TEXT'},
+      {value: 'dueDateLabel', type: 'TEXT'},
       {value: 'programStageDataElements', type: 'LONGTEXT'},
       {value: 'programStageSections', type: 'LONGTEXT'}
     ],

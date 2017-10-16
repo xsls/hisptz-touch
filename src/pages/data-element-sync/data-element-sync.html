@@ -13,7 +13,17 @@
     <page-loading loadingSize="large" [loadingMessage] = "loadingMessages"></page-loading>
   </div>
   <div *ngIf="!isLoading" class="whiteBackground">
-    <data-element-sync-component [dataElements]="dataElements" ></data-element-sync-component>
+
+    <!--<div *ngIf="!forEvents" >-->
+      <!--<data-element-sync-component [dataElements]="dataElements" ></data-element-sync-component>-->
+    <!--</div>-->
+
+    <!--<div *ngIf="forEvents">-->
+      <data-element-sync-component [dataElements]="dataElements" [forEvents]="forEvents" ></data-element-sync-component>
+    <!--</div>-->
+
+
+
   </div>
 
 

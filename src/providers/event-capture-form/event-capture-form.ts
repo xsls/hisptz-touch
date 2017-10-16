@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Http } from '@angular/http';
 import 'rxjs/add/operator/map';
+import {ProgramsProvider} from "../programs/programs";
+import {DataElementsProvider} from "../data-elements/data-elements";
+import {reject} from "q";
 
 /*
   Generated class for the EventCaptureFormProvider provider.
@@ -12,9 +15,23 @@ import 'rxjs/add/operator/map';
 export class EventCaptureFormProvider {
 
   public programStageDataElementsMapper : any;
+  usedDataElements: any;
+  dataElementsInUse:any;
+  programTracked: any;
+  programOrgUnits:any;
+  programRules:any;
+  programRulesVariables:any;
+  programRulesIndicators:any;
+  programStageArrays:any;
+  programStage:any;
 
-  constructor(public http: Http) {
+
+
+
+
+  constructor(public http: Http, public programsProvider:ProgramsProvider, public dataElementProvider:DataElementsProvider) {
     this.programStageDataElementsMapper = {};
+
   }
 
   /**
@@ -87,6 +104,114 @@ export class EventCaptureFormProvider {
     }
     return sections;
   }
+
+
+  getProgramStages(programId, currentUser){
+    let stageSectionIds = [];
+    let dataElementIds = [];
+    let newStageData = [];
+    let secDataElement = [];
+    let stageSectionMapper = {};
+    let dataElementMapper = {};
+    let sectionDataElementMapper = {};
+     return new Promise((resolve, reject) =>  {
+      this.programsProvider.getProgramsStages(programId,currentUser).then((programsStages:any)=>{
+        programsStages.forEach((programsStage:any)=>{
+          programsStage.programStageDataElements.forEach((programStageDataElement)=>{
+            dataElementIds.push(programStageDataElement.dataElement.id);
+          });
+          programsStage.programStageSections.forEach((stageSectionId:any)=>{
+            stageSectionIds.push(stageSectionId.id);
+          });
+        });
+        this.dataElementProvider.getDataElementsByIdsForEvents(dataElementIds,currentUser).then((dataElements : any)=>{
+          this.programsProvider.getProgramStageSectionsByIdsForEvents(stageSectionIds, currentUser).then((stageSectionData:any)=>{
+            dataElements.forEach((dataElement : any)=>{
+              dataElementMapper[dataElement.id] = dataElement;
+            // });
+            stageSectionData.forEach((stageSection:any)=>{
+              stageSection.dataElements.forEach((sectionDataElement:any)=>{
+
+                if(sectionDataElement.id == dataElement.id){
+                  sectionDataElementMapper[sectionDataElement.id] = dataElementMapper[sectionDataElement.id];
+                   secDataElement.push(sectionDataElementMapper[sectionDataElement.id])
+                 // sectionDataElement = sectionDataElementMapper[sectionDataElement.id];
+
+                    //alert("Section_Daata :"+JSON.stringify(secDataElement))
+                }
+
+                // sectionDataElementMapper[sectionDataElement.id] =
+                //alert("Section_Daata :"+JSON.stringify(sectionDataElement.id))
+
+                //stageSectionMapper[stageSection.id] = stageSection;
+              })
+
+              if(stageSection.dataElements.length == secDataElement.length ){
+                stageSection.dataElements = secDataElement;
+                stageSectionMapper[stageSection.id] = stageSection;
+              }
+
+            });
+          });
+
+
+            programsStages.forEach((programsStage:any)=>{
+              programsStage.programStageDataElements.forEach((programStageDataElement)=>{
+                let dataElementId = programStageDataElement.dataElement.id;
+                if(dataElementId && dataElementMapper[dataElementId]){
+                  programStageDataElement.dataElement = dataElementMapper[dataElementId]
+                }
+              });
+            });
+            // alert("Section_Daata :"+JSON.stringify(stageSectionData))
+            programsStages.forEach((programStage:any)=>{
+              programStage.programStageSections.forEach((stageSectionId:any)=>{
+                newStageData.push(stageSectionMapper[stageSectionId.id]);
+                // alert("Section_Data :"+JSON.stringify(newStageData))
+              });
+              programStage.programStageSections = newStageData;
+              programStage.programStageSections
+
+            });
+            resolve(programsStages);
+          });
+
+        }).catch(error=>{reject(error)});
+      }).catch(error=>{reject(error)});
+     });
+
+  }
+
+
+
+  getProgramStagesSection(programId,currentUser){
+    let stageSectionIds = [];
+    let newStageData = [];
+    let stageSectionMapper = {};
+    return new Promise((resolve, reject)=>{
+      this.programsProvider.getProgramsStages(programId,currentUser).then((programsStages:any)=>{
+        programsStages.forEach((programStage:any)=>{
+          programStage.programStageSections.forEach((stageSectionId:any)=>{
+            stageSectionIds.push(stageSectionId.id);
+          });
+        });
+        this.programsProvider.getProgramStageSectionsByIdsForEvents(stageSectionIds, currentUser).then((stageSectionData:any)=>{
+          alert("Stag "+JSON.stringify(stageSectionData))
+          stageSectionData.forEach((stageSection:any)=>{
+            stageSectionMapper[stageSection.id] = stageSection;
+          });
+          programsStages.forEach((programStage:any)=>{
+            programStage.programStageSections.forEach((stageSectionId:any)=>{
+                 newStageData.push(stageSectionMapper[stageSectionId.id]);
+            });
+            programStage.programStageSections = newStageData;
+          });
+          resolve(programsStages);
+        }).catch(error=>{reject(error)});
+      });
+    })
+  }
+
 
 
 }

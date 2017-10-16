@@ -3,6 +3,8 @@ import {UserProvider} from "../../providers/user/user";
 import {AppProvider} from "../../providers/app/app";
 import {SyncProvider} from "../../providers/sync/sync";
 import {ModalController} from "ionic-angular";
+import {EventsProvider} from "../../providers/events/events";
+import {DataValuesProvider} from "../../providers/data-values/data-values";
 
 /**
  * Generated class for the UploadViaInternetComponent component.
@@ -23,10 +25,12 @@ export class UploadViaInternetComponent implements OnInit{
   loadingMessage: string;
   itemsToUpload : Array<string>;
   importSummaries : any;
+  eventsCount:any;
+  dataValuesCount:any;
 
 
-  constructor(private syncProvider : SyncProvider,private modalCtrl : ModalController,
-              private appProvider: AppProvider, public user: UserProvider) {
+  constructor(private syncProvider : SyncProvider,private modalCtrl : ModalController, public dataValuesProvider: DataValuesProvider,
+              private appProvider: AppProvider, public user: UserProvider, public eventsProvider:EventsProvider) {
   }
 
   ngOnInit(){
@@ -36,9 +40,24 @@ export class UploadViaInternetComponent implements OnInit{
     this.importSummaries = null;
     this.user.getCurrentUser().then((user:any)=>{
       this.currentUser = user;
+      this.getUnSyncedEventsCounts();
+      this.getUnSyncedDataValuesCounts();
       this.isLoading = false;
     },error=>{
     });
+  }
+
+
+  getUnSyncedEventsCounts(){
+    this.eventsProvider.getEventsFromStorageByStatus("not-synced", this.currentUser).then((events:any)=>{
+      this.eventsCount = events.length;
+    })
+  }
+
+  getUnSyncedDataValuesCounts(){
+    this.dataValuesProvider.getDataValuesByStatus("not-synced", this.currentUser).then((dataValues:any)=>{
+      this.dataValuesCount = dataValues.length;
+    })
   }
 
 
@@ -63,7 +82,9 @@ export class UploadViaInternetComponent implements OnInit{
       });
       if(shouldUpload){
         this.loadingMessage = "Prepare data for uploading";
+        //alert("modified event :"+JSON.stringify(data))
         this.syncProvider.prepareDataForUploading(data).then((preparedData : any)=>{
+          //alert("prepared :"+JSON.stringify(preparedData))
           this.loadingMessage = "Uploading data";
           this.syncProvider.uploadingData(preparedData,data,this.currentUser).then((response)=>{
             this.isLoading = false;
@@ -92,6 +113,8 @@ export class UploadViaInternetComponent implements OnInit{
       let modal = this.modalCtrl.create('ImportSummariesPage',{importSummaries : this.importSummaries});
       modal.onDidDismiss(()=>{
 
+        this.getUnSyncedDataValuesCounts();
+        this.getUnSyncedEventsCounts();
       });
       modal.present();
     }

@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {IonicPage, ModalController, NavController, NavParams} from 'ionic-angular';
+import {FabContainer, IonicPage, ModalController, NavController, NavParams} from 'ionic-angular';
 import {UserProvider} from "../../providers/user/user";
 import {OrganisationUnitsProvider} from "../../providers/organisation-units/organisation-units";
 import {ProgramsProvider} from "../../providers/programs/programs";
@@ -8,6 +8,9 @@ import {ProgramSelection} from "../program-selection/program-selection";
 import {SqlLiteProvider} from "../../providers/sql-lite/sql-lite";
 import {EventsProvider} from "../../providers/events/events";
 import {DataElementsProvider} from "../../providers/data-elements/data-elements";
+import {EventCaptureFormProvider} from "../../providers/event-capture-form/event-capture-form";
+import {NetworkAvailabilityProvider} from "../../providers/network-availability/network-availability";
+import {error} from "util";
 
 /**
  * Generated class for the EventCapturePage page.
@@ -29,7 +32,7 @@ export class EventCapturePage implements OnInit {
   currentUser: any;
   programIdsByUserRoles: Array<string>;
   isLoading: boolean;
-  loadingMessage: string;
+  loadingMessage: string  ='loading';
   organisationUnitLabel: string;
   programLabel: string;
   isFormReady: boolean;
@@ -39,27 +42,18 @@ export class EventCapturePage implements OnInit {
   selectedDataDimension: Array<any>;
   programs: Array<any>;
   icons: any = {};
+  loadingData:boolean = false;
+  tableFormat: any;
 
 
 
+  attibCc:any;
+  attribCos:any;
 
-
-
-  programNamesByUserRoles: any;
   currentEvents: any;
   eventListSections: any;
-  isAllParameterSet: boolean;
   showEmptyList: boolean = false;
-  selectedOrgUnitId: any;
-  selectedProgramStages: any;
   table: any;
-  assignedPrograms: any;
-  selectedProgramId: any;
-  selectedProgramCatCombo: any;
-  assignedProgramCategoryOptions: any;
-  programInfo: any;
-  dataOnEvents: any;
-  CategoryOptionLabel: any;
   programLoading: boolean = false;
   hasOptions: boolean = false;
   eventsData: any;
@@ -70,16 +64,15 @@ export class EventCapturePage implements OnInit {
   selectionList: any = {};
   programStageDataElements: any;
   currentAvailableEvents: any;
+  currentAvailableOnEvents: any;
 
   currentPeriodOffset: any;
-  selectedOption: any;
   selectedPeriod: any;
-  userRoleData: any;
   network: any;
 
   constructor(private navCtrl: NavController, private userProvider: UserProvider, private modalCtrl: ModalController,
               private organisationUnitsProvider: OrganisationUnitsProvider, private programsProvider: ProgramsProvider, private appProvider: AppProvider,
-              private sqlLiteProvider: SqlLiteProvider, private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider) {
+              private eventProvider: EventsProvider, private dataElementsProvider: DataElementsProvider, private networkProvider:NetworkAvailabilityProvider) {
   }
 
   ngOnInit() {
@@ -89,7 +82,8 @@ export class EventCapturePage implements OnInit {
     this.selectedDataDimension = [];
     this.programIdsByUserRoles = [];
     this.programs = [];
-    this.loadingMessage = "Loading. user information";
+    this.currentEvents = [];
+    this.loadingMessage = "Loading user information";
     this.isLoading = true;
     this.isFormReady = false;
     this.isProgramDimensionApplicable = false;
@@ -109,7 +103,7 @@ export class EventCapturePage implements OnInit {
             this.selectedOrgUnit = lastSelectedOrgUnit;
             this.loadingPrograms();
           }
-          this.updateTrackerCaptureSelections();
+          this.updateEventCaptureSelections();
         });
       });
     }, error => {
@@ -119,6 +113,12 @@ export class EventCapturePage implements OnInit {
     });
   }
 
+  ionViewDidEnter(){
+    if(this.isAllParameterSelected()){
+      this.loadEventsToDisplay()
+    }
+  }
+
   loadingPrograms() {
     this.isLoading = true;
     this.loadingMessage = "Loading assigned programs";
@@ -126,7 +126,7 @@ export class EventCapturePage implements OnInit {
     this.programsProvider.getProgramsAssignedOnOrgUnitAndUserRoles(this.selectedOrgUnit.id, programType, this.programIdsByUserRoles, this.currentUser).then((programs: any) => {
       this.programs = programs;
       this.selectedProgram = this.programsProvider.lastSelectedProgram;
-      this.updateTrackerCaptureSelections();
+      this.updateEventCaptureSelections();
       if(this.selectedProgram && this.selectedProgram.categoryCombo){
         this.updateDataSetCategoryCombo(this.selectedProgram.categoryCombo);
       }
@@ -140,7 +140,7 @@ export class EventCapturePage implements OnInit {
     });
   }
 
-  updateTrackerCaptureSelections() {
+  updateEventCaptureSelections() {
     if (this.organisationUnitsProvider.lastSelectedOrgUnit) {
       this.selectedOrgUnit = this.organisationUnitsProvider.lastSelectedOrgUnit;
       this.organisationUnitLabel = this.selectedOrgUnit.name;
@@ -162,7 +162,7 @@ export class EventCapturePage implements OnInit {
     modal.onDidDismiss((selectedOrgUnit: any) => {
       if (selectedOrgUnit && selectedOrgUnit.id) {
         this.selectedOrgUnit = selectedOrgUnit;
-        this.updateTrackerCaptureSelections();
+        this.updateEventCaptureSelections();
         this.loadingPrograms();
       }
     });
@@ -176,13 +176,16 @@ export class EventCapturePage implements OnInit {
       });
       modal.onDidDismiss((selectedProgram: any) => {
         if (selectedProgram && selectedProgram.id) {
+           this.showEmptyList = false;
           this.selectedProgram = selectedProgram;
           this.programsProvider.setLastSelectedProgram(selectedProgram);
-          this.updateTrackerCaptureSelections();
+          this.updateEventCaptureSelections();
           this.updateDataSetCategoryCombo(this.selectedProgram.categoryCombo);
+          this.getDataDimensions();
         }
       });
       modal.present();
+      this.showEmptyList = false;
     } else {
       this.appProvider.setNormalNotification("There are no program to select on " + this.selectedOrgUnit.name);
     }
@@ -199,7 +202,8 @@ export class EventCapturePage implements OnInit {
       modal.onDidDismiss((selectedDataDimension : any)=>{
         if(selectedDataDimension && selectedDataDimension.id ){
           this.selectedDataDimension[currentIndex] = selectedDataDimension;
-          this.updateTrackerCaptureSelections();
+          this.updateEventCaptureSelections();
+          this.loadEventsToDisplay();
         }
       });
       modal.present();
@@ -220,6 +224,8 @@ export class EventCapturePage implements OnInit {
           attributeCos += ";" + dimension.id;
         }
       });
+      this.attibCc = attributeCc;
+      this.attribCos = attributeCos;
       return {attributeCc : attributeCc,attributeCos:attributeCos};
     }else{
       return {};
@@ -265,59 +271,107 @@ export class EventCapturePage implements OnInit {
       }
       this.selectedDataDimension = [];
       this.programCategoryCombo = programCategoryCombo;
-      this.updateTrackerCaptureSelections();
+      this.updateEventCaptureSelections();
+      this.loadEventsToDisplay();
+    }
+  }
+
+
+  loadEventsToDisplay() {
+    this.loadingData = true;
+    this.tableFormat = false;
+    this.loadingMessage = "Loading current events based on selected inputs";
+    this.usedDataElements = [];
+    let currentEventsProgramsStage = [];
+
+    this.network = this.networkProvider.getNetWorkStatus();
+    if (this.isAllParameterSelected()) {
+      if (!this.network.isAvailable) {
+        this.loadEventsFromOfflineStorage();
+      } else {
+
+      this.getDataDimensions();
+      this.eventProvider.downloadEventsFromServer(this.selectedOrgUnit, this.selectedProgram, this.currentUser).then((eventsData: any) => {
+        eventsData.events.forEach((event: any) => {
+          currentEventsProgramsStage.push(event.programStage)
+        })
+        if (eventsData.events.length > 0) {
+          this.showEmptyList = false;
+
+          eventsData.events.forEach((eventInfo: any) => {
+            eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
+            eventInfo["programName"] = this.selectedProgram.name;
+          });
+
+          this.eventProvider.savingEventsFromServer(eventsData, this.currentUser).then((response: any) => {
+            this.loadEventsFromOfflineStorage();
+          })
+          this.loadEvents();
+
+        } else {
+          this.loadingData = false;
+          this.loadEventsFromOfflineStorage();
+          this.tableFormat = false;
+          this.appProvider.setNormalNotification("There are no online events to display on " + this.selectedProgram.name);
+        }
+
+      }, error=>{
+        this.loadingData = false;
+        this.loadEventsFromOfflineStorage();
+      });
+
+    }
+
     }
 
   }
 
 
-  loadEventsToDisplay() {
-    this.dataOnEvents = [];
-    this.usedDataElements = [];
-    let currentEvents = [];
 
-    this.eventProvider.downloadEventsFromServer(this.selectedOrgUnitId, this.selectedProgramId, this.currentUser).then((eventsData: any) => {
-      let eventDataValues: any;
-
-
-      eventsData.events.forEach((event: any) => {
-        currentEvents.push(event)
-      })
-
-      if (eventsData.events.length !== 0) {
-        this.showEmptyList = false;
-        this.eventsData = eventsData.events;
-
-        this.eventsData.forEach((eventInfo: any) => {
-          eventDataValues = eventInfo.dataValues;
-
-          eventDataValues.forEach((dataRow: any) => {
-
-            this.usedDataElements.push(dataRow.dataElement);
-
-            this.dataOnEvents.push({
-              eventId: eventInfo.event,
-              dataElementId: dataRow.dataElement,
-              dataValue: dataRow.value
-            })
-          });
+  /**
+   * loading all events based on selected option from offline storage
+   */
+  loadEventsFromOfflineStorage(){
+    this.showEmptyList = false;
+    let eventDataValues: any;
+    this.eventProvider.loadingEventsFromStorage(this.selectedOrgUnit,this.selectedProgram,this.currentUser).then((events:any)=>{
+      let currentEvents = [];
+      if(this.selectedDataDimension.length > 0){
+        let attributeCategoryOptions = this.selectedDataDimension.toString();
+        attributeCategoryOptions = attributeCategoryOptions.replace(/,/g, ';');
+        events.forEach((event : any)=>{
+          if(event.attributeCategoryOptions == attributeCategoryOptions){
+            currentEvents.push(event);
+          }
         });
-
-      } else {
-        this.showEmptyList = true;
-        this.appProvider.setNormalNotification("There are no events to display on " + this.selectedProgram);
+      }else{
+        currentEvents = events;
       }
+      this.eventsData = currentEvents;
+      this.eventsData.forEach((eventInfo: any) => {
+        eventInfo["orgUnitName"] = this.selectedOrgUnit.name;
+        eventInfo["programName"] = this.selectedProgram.name;
+
+        eventDataValues = eventInfo.dataValues;
+        eventDataValues.forEach((dataRow: any) => {
+          this.usedDataElements.push(dataRow.dataElement);
+        });
+      });
 
 
-      this.currentEvents = eventsData.events;
+      this.currentEvents = currentEvents;
       this.loadEvents();
-
-    })
-
+    },error=>{
+      this.loadingData = false;
+      this.appProvider.setTopNotification("Fail to load events from offline storage");
+    });
   }
 
 
   loadEvents() {
+    this.loadingData = false;
+     this.showEmptyList = false;
+    this.loadingMessage = "Preparing events view display";
     this.table = {
       header: [], rows: []
     };
@@ -325,64 +379,90 @@ export class EventCapturePage implements OnInit {
     this.tableFormatRow = [];
     this.rowData = {};
     this.currentAvailableEvents = [];
+    this.currentAvailableOnEvents = [];
     let SortedDataElementIds = Array.from(new Set(this.usedDataElements));
 
     this.selectionList = SortedDataElementIds;
 
-
     SortedDataElementIds.forEach((list: any) => {
       this.dataElementsProvider.getDataElementsByName(list, this.currentUser).then((results: any) => {
-
         this.currentAvailableEvents.push({
           name: results[0].displayName,
           id: results[0].id
-        })
-
-        this.table.header.push({
-          id: results[0].id,
-          name: results[0].displayName
-        })
-
-        this.tableFormatHeader.push({
+        });
+        this.currentAvailableOnEvents.push({
           name: results[0].displayName,
-          id: results[0].id,
-          // data: data.dataValue
-          //data: this.tableFormatRow
-        })
-      });
+          id: list
+        });
+        if(SortedDataElementIds.length == this.currentAvailableEvents.length){
+          this.loadEventListAsTable();
+        }else {
+          this.loadingData = false;
+         // this.showEmptyList = true;
+        }
+      })
     });
-
-
-    this.dataOnEvents.forEach((data: any) => {
-      this.tableFormatRow.push({
-        event: data.eventId,
-        value: data.dataValue,
-        dataElmId: data.dataElementId
-      });
-
-
-    });
-
-    //this.loadEventListAsTable();
   }
 
 
-  showFieldSelectionMenu() {
-    if (this.selectionList) {
+  loadEventListAsTable(){
+    this.loadingData = true;
+    this.showEmptyList = false;
+    this.loadingMessage = "preparing data";
+    this.eventProvider.getEventListInTableFormat(this.currentEvents,this.currentAvailableEvents).then((table:any)=>{
+      this.loadingData = false;
+      this.showEmptyList = false;
+      this.tableFormat = table;
+      this.eventListSections = [];
+    });
+  }
+
+
+  showFieldSelectionMenu(fab: FabContainer) {
+    fab.close();
+    if (this.tableFormat) {
       let modal = this.modalCtrl.create('EventFieldSelectionMenu', {
         dataElementToDisplay: this.currentEvents,
-        dataElementMapper: this.currentAvailableEvents
+        dataElementMapper: this.currentAvailableOnEvents
       });
-      modal.onDidDismiss((dataElementToDisplayResponse: any) => {
-        // if(dataElementToDisplayResponse){
-        //
-        // }
+      modal.onDidDismiss((dataElementToDisplayResponse:any)=>{
+        if(dataElementToDisplayResponse){
+          this.currentAvailableEvents = dataElementToDisplayResponse;
+          this.loadEventListAsTable();
+        }
       });
       modal.present();
     } else {
       this.appProvider.setNormalNotification("There are no selection options to display");
     }
   }
+
+
+  /**
+   * navigate to event
+   * @param event
+   */
+  goToEventView(event){
+
+    let params = {
+      currentEvent: this.currentEvents,
+      event : event.event
+    };
+    this.navCtrl.push('EventView',{params:params});
+  }
+
+
+  goToEventRegister(fab: FabContainer){
+    fab.close();
+    let params = {
+      attribCos:this.attribCos,
+      attribCc: this.attibCc,
+      selectedDataDimension : this.getDataDimensions(),
+      event : ""
+    };
+    this.navCtrl.push('EventCaptureForm',{params:params});
+  }
+
 
 
 }

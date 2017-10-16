@@ -4,6 +4,7 @@ import {AboutProvider} from "../../providers/about/about";
 import {AppProvider} from "../../providers/app/app";
 import {DataValuesProvider} from "../../providers/data-values/data-values";
 import {UserProvider} from "../../providers/user/user";
+import {EventsProvider} from "../../providers/events/events";
 
 /**
  * Generated class for the AboutPage page.
@@ -29,11 +30,12 @@ export class AboutPage implements OnInit{
   aboutContents : Array<any>;
   isAboutContentOpen : any = {};
   dataValuesStorage : any = { online : 0,offline : 0};
+  eventsDataStorage : any = { online : 0,offline : 0};
 
 
 
   constructor(public navCtrl: NavController,
-              private appProvider : AppProvider,
+              private appProvider : AppProvider, private eventsProvider:EventsProvider,
               private aboutProvider : AboutProvider, private dataValuesProvider: DataValuesProvider, private userProvider: UserProvider) {
   }
 
@@ -65,6 +67,7 @@ export class AboutPage implements OnInit{
           }
         }
         this.loadingDataValueStatus();
+        this.loadingEventsDataStatus();
 
         this.isLoading = false;
         this.loadingMessage = '';
@@ -111,8 +114,7 @@ export class AboutPage implements OnInit{
         this.dataValuesStorage.online = syncedDataValues.length;
         this.dataValuesStorage["synced"] = syncedDataValues;
         this.dataValuesStorage["not-synced"] = unSyncedDataValues;
-        //@todo move this when loading all data even events
-        this.hasAllDataBeenLoaded = true;
+
       },error=>{
         if(ionRefresher){
           ionRefresher.complete();
@@ -129,10 +131,46 @@ export class AboutPage implements OnInit{
     });
   }
 
+  loadingEventsDataStatus(ionRefresher?){
+    this.eventsProvider.getEventsFromStorageByStatus("synced", this.currentUser).then((syncedEventData:any)=>{
+    this.eventsProvider.getEventsFromStorageByStatus("not-synced", this.currentUser).then((unsyncedEventData:any)=>{
+      this.eventsDataStorage.offline = unsyncedEventData.length;
+      this.eventsDataStorage.online = syncedEventData.length;
+      this.eventsDataStorage["synced"] = syncedEventData;
+      this.eventsDataStorage["not-synced"] = unsyncedEventData;
+      //@todo move this when loading all data even events
+      this.hasAllDataBeenLoaded = true;
+
+    },error=>{
+      if(ionRefresher){
+        ionRefresher.complete();
+      }
+      this.appProvider.setNormalNotification('Failed to load events data from storage');
+      this.isLoading = false;
+    })
+    },error=>{
+      if(ionRefresher){
+        ionRefresher.complete();
+      }
+      this.appProvider.setNormalNotification('Fail to load events data from storage');
+      this.isLoading = false;
+    })
+
+  }
+
 
   viewDataValuesSynchronisationStatusByDataSets(syncStatus){
     if(this.dataValuesStorage[syncStatus].length > 0){
       this.navCtrl.push('DataValuesSyncContainerPage',{dataValues : this.dataValuesStorage[syncStatus],syncStatus:syncStatus});
+    }else{
+      this.appProvider.setNormalNotification("There is nothing to view");
+    }
+  }
+
+  viewEventDataSynchronisationsStatuses(syncStatus){
+    if(this.eventsDataStorage[syncStatus].length > 0){
+      //alert("statusData :"+JSON.stringify(this.eventsDataStorage[syncStatus]))
+      this.navCtrl.push('EventsSyncContainerPage',{events : this.eventsDataStorage[syncStatus],syncStatus:syncStatus});
     }else{
       this.appProvider.setNormalNotification("There is nothing to view");
     }

@@ -14,8 +14,11 @@ import {NavController, NavParams} from "ionic-angular";
 export class DataElementSyncComponent implements OnInit{
 
   @Input() dataElements;
+  @Input() forEvents;
+
   public loadingMessage : string = "Preparing data";
   public isLoading : boolean = true;
+   // forEvent : boolean = true;
 
 
   constructor(public navCtrl: NavController, public navParams: NavParams) {
@@ -26,6 +29,22 @@ export class DataElementSyncComponent implements OnInit{
     if(this.dataElements){
       this.isLoading = false;
     }
+
+    // this.dataElements.forEach((dataElement:any)=>{
+    //   alert("event tejjdkhkjue")
+    //   if(dataElement.dataElement){
+    //     // this.forEvent = true;
+    //     alert("event teue")
+    //   }else{
+    //     this.forEvent = false;
+    //   }
+    // })
+
+    // if(this.dataElements[0].dataElement){
+    //   this.forEvent = true;
+    // }else{
+    //   this.forEvent = false;
+    // }
   }
 
 
