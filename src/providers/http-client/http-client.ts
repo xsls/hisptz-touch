@@ -32,7 +32,6 @@ export class HttpClientProvider {
    * @returns {Promise<T>}
      */
   get(url,user) {
-    this.http.setRequestTimeout(this.timeOutTime);
     this.http.useBasicAuth(user.username,user.password);
     url = user.serverUrl + this.getUrlBasedOnDhisVersion(url,user);
     return new Promise((resolve, reject)=> {
@@ -57,7 +56,6 @@ export class HttpClientProvider {
      */
   post(url,data,user) {
     this.http.useBasicAuth(user.username,user.password);
-    this.http.setRequestTimeout(this.timeOutTime);
     url = user.serverUrl + this.getUrlBasedOnDhisVersion(url,user);
     return new Promise((resolve, reject)=> {
       this.http.post(url,data,{})
