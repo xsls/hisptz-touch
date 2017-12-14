@@ -32,9 +32,9 @@ export class ReportParameterSelectionPage implements OnInit{
   selectedPeriod : any = {};
   selectedOrgUnit : any;
   icons: any = {};
-  periodReady: boolean = false;
-  orgUnitReady: boolean = false;
   reportPeriodType : any;
+  currentPeriodOffset : number = 0;
+  isAllReportParameterSet : boolean;
 
   constructor( private user: UserProvider, private modalCtrl : ModalController, private params: NavParams,private navCtrl: NavController,
                private organisationUnitsProvider: OrganisationUnitsProvider, private periodSelectionProvider: PeriodSelectionProvider,
@@ -45,31 +45,38 @@ export class ReportParameterSelectionPage implements OnInit{
     this.icons.orgUnit = "assets/reports/orgUnit.png";
     this.icons.period = "assets/reports/period.png";
     this.icons.report = "assets/reports/reports.png";
-
+    this.isAllReportParameterSet = false;
     this.reportName = this.params.get('name');
     this.reportId = this.params.get("id");
     this.reportParams = this.params.get("reportParams");
     this.reportPeriodType  = this.standardReportProvider.getReportPeriodType(this.params.get("relativePeriods"));
     this.user.getCurrentUser().then((user)=>{
       this.currentUser = user;
-      this.updateReportParameterSelections();
+      this.organisationUnitsProvider.getLastSelectedOrganisationUnitUnit(user).then((lastSelectedOrgunit)=>{
+        this.selectedOrgUnit = lastSelectedOrgunit;
+        let periods = this.periodSelectionProvider.getPeriods(this.reportPeriodType,1,this.currentPeriodOffset);
+        if(periods && periods.length > 0){
+          this.selectedPeriod = periods[0];
+        }
+        this.updateReportParameterSelections();
+      });
     });
   }
 
   updateReportParameterSelections() {
-    if (this.organisationUnitsProvider.lastSelectedOrgUnit) {
+    if (this.selectedOrgUnit && this.selectedOrgUnit.id) {
       this.selectedOrgUnit = this.organisationUnitsProvider.lastSelectedOrgUnit;
       this.selectedOrganisationUnitLabel = this.selectedOrgUnit.name;
-      this.orgUnitReady = true;
     } else {
       this.selectedOrganisationUnitLabel = "Touch to select organisation Unit";
     }
-    if (this.periodSelectionProvider.lastSelectedPeriod) {
-      this.selectedPeriodLabel = this.periodSelectionProvider.lastSelectedPeriod;
-      this.periodReady = true;
+    if (this.selectedPeriod && this.selectedPeriod.name) {
+      this.selectedPeriodLabel = this.selectedPeriod.name;
+
     } else {
       this.selectedPeriodLabel = "Touch to select Period";
     }
+    this.isAllReportParameterSet = this.isAllReportParameterSelected();
   }
 
   openOrganisationUnitTree(){
@@ -77,31 +84,44 @@ export class ReportParameterSelectionPage implements OnInit{
     modal.onDidDismiss((selectedOrgUnit : any)=>{
       if(selectedOrgUnit && selectedOrgUnit.id){
         this.selectedOrgUnit = selectedOrgUnit;
-        this.orgUnitReady = true;
         this.updateReportParameterSelections();
       }
     });
     modal.present();
   }
 
-
   openReportPeriodSelection(){
     if(this.selectedOrganisationUnitLabel){
       let modal = this.modalCtrl.create('PeriodSelectionPage',{
         periodType: this.reportPeriodType ,
-        currentPeriodOffset : 0,
+        currentPeriodOffset : this.currentPeriodOffset,
         openFuturePeriods: 1,
         currentPeriod : this.selectedPeriod,
       });
-      modal.onDidDismiss((selectedPeriod:any) => {
-        if(selectedPeriod){
-          this.selectedPeriod = selectedPeriod;
-          this.periodReady = true;
+      modal.onDidDismiss((response:any) => {
+        if(response && response.selectedPeriod){
+          this.selectedPeriod = response.selectedPeriod;
+          this.currentPeriodOffset = response.currentPeriodOffset;
           this.updateReportParameterSelections();
         }
       });
       modal.present();
     }
+  }
+
+  isAllReportParameterSelected(){
+    let isAllReportParameterSet = true;
+    if(this.reportParams.paramOrganisationUnit){
+      if(!(this.selectedOrgUnit && this.selectedOrgUnit.id)){
+        isAllReportParameterSet = false;
+      }
+    }
+    if(this.reportParams.paramReportingPeriod){
+      if(!(this.selectedPeriod && this.selectedPeriod.name )){
+        isAllReportParameterSet = false;
+      }
+    }
+    return isAllReportParameterSet;
   }
 
   goToView(){
